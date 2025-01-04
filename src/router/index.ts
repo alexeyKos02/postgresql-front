@@ -1,4 +1,5 @@
 import RegistrationOrAuthView from '@/views/RegistrationOrAuthView.vue'
+import WorkSpace from '@/views/WorkSpace.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 
 const router = createRouter({
@@ -10,9 +11,9 @@ const router = createRouter({
       component: RegistrationOrAuthView,
     },
     {
-      path: '/about',
-      name: 'about',
-      component: {},
+      path: '/main',
+      name: 'main',
+      component: WorkSpace,
     },
   ],
 })

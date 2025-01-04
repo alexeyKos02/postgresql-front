@@ -27,22 +27,14 @@ const validateForm = (): boolean => {
 
   return !errors.username && !errors.email && !errors.password
 }
+
 const titleText = computed(() => {
-  return signUp.value ? 'Регистрация' : 'вход'
+  return signUpForForm.value ? 'Регистрация' : 'вход'
 })
 
 function changeType() {
   resetFields(errors)
   resetFields(form)
-  // errors.username = ''
-  // errors.secondName = ''
-  // errors.email = ''
-  // errors.password = ''
-
-  // form.username = ''
-  // form.secondName = ''
-  // form.email = ''
-  // form.password = ''
 
   if (!signUp.value) {
     signUp.value = !signUp.value

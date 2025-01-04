@@ -6,7 +6,7 @@ import { PageName } from './styles'
 const router = useRouter()
 
 onMounted(() => {
-  router.push({ name: PageName.Login })
+  // router.push({ name: PageName.Main })
 })
 </script>
 
