@@ -1,6 +1,10 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, onBeforeUnmount } from 'vue'
+import type { ContextMenuElement } from '@/types'
+import { ref, reactive, onMounted, onBeforeUnmount, defineProps } from 'vue'
 
+const props = defineProps<{
+  elements: ContextMenuElement[]
+}>()
 // Позиция меню
 const menuPosition = reactive({ x: 0, y: 0 })
 // Видимость меню
@@ -8,6 +12,7 @@ const isMenuVisible = ref<boolean>(false)
 
 // Показать контекстное меню
 function showMenu(event: MouseEvent) {
+  hideMenu()
   menuPosition.x = event.clientX
   menuPosition.y = event.clientY
   isMenuVisible.value = true
@@ -16,22 +21,6 @@ function showMenu(event: MouseEvent) {
 // Скрыть контекстное меню
 function hideMenu() {
   isMenuVisible.value = false
-}
-
-// Пример действий для пунктов меню
-function menuAction1() {
-  alert('Действие 1 выполнено')
-  hideMenu()
-}
-
-function menuAction2() {
-  alert('Действие 2 выполнено')
-  hideMenu()
-}
-
-function menuAction3() {
-  alert('Действие 3 выполнено')
-  hideMenu()
 }
 
 // Скрывать меню при клике вне его (глобальный обработчик)
@@ -52,33 +41,21 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="context-area" @contextmenu.prevent="showMenu">Щелкните правой кнопкой мыши здесь</div>
-
+  <slot name="element" :onClick="showMenu"></slot>
   <div
     v-if="isMenuVisible"
     class="context-menu"
     :style="{ top: `${menuPosition.y}px`, left: `${menuPosition.x}px` }"
   >
     <ul>
-      <li @click="menuAction1">Действие 1</li>
-      <li @click="menuAction2">Действие 2</li>
-      <li @click="menuAction3">Действие 3</li>
+      <li v-for="element in props.elements" :key="element.title" @click="element.action">
+        {{ element.title }}
+      </li>
     </ul>
   </div>
 </template>
 
 <style scoped>
-.context-area {
-  width: 100%;
-  height: 200px;
-  background-color: #f0f0f0;
-  border: 1px solid #ccc;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: default;
-}
-
 .context-menu {
   position: absolute;
   background-color: white;
@@ -86,6 +63,8 @@ onBeforeUnmount(() => {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
   z-index: 1000;
   width: 150px;
+  font-size: 12px;
+  transition: all 0.2s linear;
 }
 
 .context-menu ul {

@@ -22,6 +22,14 @@ html {
   font-size: 16px; /* Базовый размер */
 }
 body {
-  font-family: Flame, sans-serif;
+  font-family: 'Accid', sans-serif;
+  /* font-family: Flame, sans-serif; */
+}
+#app {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
 }
 </style>
