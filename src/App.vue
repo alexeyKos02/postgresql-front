@@ -22,7 +22,7 @@ html {
   font-size: 16px; /* Базовый размер */
 }
 body {
-  font-family: 'Accid', sans-serif;
+  font-family: 'Duepun', sans-serif;
   /* font-family: Flame, sans-serif; */
 }
 #app {

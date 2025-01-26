@@ -1,19 +1,3 @@
-<script lang="ts" setup>
-import { reactive } from 'vue'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-// Состояние для открытых/закрытых элементов
-const isOpen = reactive({
-  root: false,
-  folder1: false,
-  folder2: false,
-  folder3: false,
-})
-
-const toggle = (key: any) => {
-  isOpen[key] = !isOpen[key]
-}
-</script>
-
 <template>
   <div>
     <ul class="file-tree">
@@ -79,7 +63,21 @@ const toggle = (key: any) => {
     </ul>
   </div>
 </template>
+<script setup lang="ts">
+import { reactive } from 'vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+// Состояние для открытых/закрытых элементов
+const isOpen = reactive({
+  root: false,
+  folder1: false,
+  folder2: false,
+  folder3: false,
+})
 
+const toggle = (key: any) => {
+  isOpen[key] = !isOpen[key]
+}
+</script>
 <style scoped lang="scss">
 /* Стилизация списка */
 ul {
@@ -120,7 +118,7 @@ li {
 }
 
 .file-tree {
-  font-family: 'Accid', sans-serif;
+  // font-family: 'Accid', sans-serif;
   font-size: 17px;
   white-space: nowrap;
   clip-path: inset(0 0 0 0);

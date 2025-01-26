@@ -9,16 +9,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onUnmounted } from 'vue'
+import { ref, onUnmounted, useAttrs } from 'vue'
 import FileTree from './FileTree.vue'
-import ContextMenu from './contextMenu.vue'
+import ContextMenu from '@/components/ContextMenu.vue'
 import type { ContextMenuElement } from '@/types'
+import { useRenderStore } from '@/stores'
 
 const contextMenu: ContextMenuElement[] = [{ title: 'Создать пространство', action: () => {} }]
 const width = ref(150) // Начальная ширина элемента
 const maxWidth = 300 // Максимальная ширина
 const minWidth = 50 // Минимальная ширина
 
+const store = useRenderStore()
 let isResizing = false
 let startX = 0
 
@@ -52,6 +54,11 @@ onUnmounted(() => {
   document.removeEventListener('mousemove', resize)
   document.removeEventListener('mouseup', stopResizing)
 })
+function open() {
+  if (store.centerModule) {
+    store.centerModule.isActive = true
+  }
+}
 </script>
 
 <style lang="scss">
