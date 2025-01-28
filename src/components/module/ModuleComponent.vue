@@ -1,27 +1,27 @@
 <script lang="ts" setup>
-import { useRenderStore } from '@/stores'
-import { computed, ref } from 'vue'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { TypeModule } from '@/types/components'
-const moduleType = ref<string>('center')
-const store = useRenderStore()
+import { useRenderStore } from '@/stores';
+import { computed, ref } from 'vue';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { TypeModule } from '@/types/components';
+const moduleType = ref<string>('center');
+const store = useRenderStore();
 const goingBack = computed(() => {
   if (moduleType.value === 'center') {
-    return store.centerModuleHistory.length > 1
+    return store.centerModuleHistory.length > 1;
   }
-  return 0
-})
+  return 0;
+});
 const backAction = () => {
   if (store.centerModule?.isActive) {
-    store.centerModule.type = store.centerModuleHistory[store.centerModuleHistory.length - 2]
-    store.centerModuleHistory.pop()
+    store.centerModule.type = store.centerModuleHistory[store.centerModuleHistory.length - 2];
+    store.centerModuleHistory.pop();
   }
-}
+};
 const closeModal = () => {
   if (store.centerModule) {
-    store.centerModule.isActive = false
+    store.centerModule.isActive = false;
   }
-}
+};
 </script>
 <template>
   <transition name="fade">

@@ -1,6 +1,6 @@
 export interface User {
-  email: string
-  role: UserRole
+  email: string;
+  role: UserRole;
 }
 
 export enum UserRole {
@@ -10,10 +10,10 @@ export enum UserRole {
 }
 
 export interface Cluster {
-  name: string
+  name: string;
 }
 
 export interface SecurityGroup {
-  name: string
-  id: string
+  name: string;
+  id: string;
 }

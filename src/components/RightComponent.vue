@@ -1,13 +1,13 @@
 <script lang="ts" setup>
-import ModuleComponent from '@/components/module/ModuleComponent.vue'
-import ClusterComponent from '@/components/module/pages/ClusterComponent.vue'
-import { useRenderStore } from '@/stores'
-import { TypeModule } from '@/types/components'
-import SpaceModule from '@/components/module/pages/SpaceModule.vue'
-import ClusterInfo from './module/pages/ClusterInfo.vue'
-import AddUserPage from './module/pages/AddUserPage.vue'
-import AddSecurityGroup from './module/pages/AddSecurityGroup.vue'
-const store = useRenderStore()
+import ModuleComponent from '@/components/module/ModuleComponent.vue';
+import ClusterComponent from '@/components/module/pages/ClusterComponent.vue';
+import { useRenderStore } from '@/stores';
+import { TypeModule } from '@/types/components';
+import SpaceModule from '@/components/module/pages/SpaceModule.vue';
+import ClusterInfo from './module/pages/ClusterInfo.vue';
+import AddUserPage from './module/pages/AddUserPage.vue';
+import AddSecurityGroup from './module/pages/AddSecurityGroup.vue';
+const store = useRenderStore();
 </script>
 
 <template>

@@ -64,19 +64,19 @@
   </div>
 </template>
 <script setup lang="ts">
-import { reactive } from 'vue'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { reactive } from 'vue';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 // Состояние для открытых/закрытых элементов
 const isOpen = reactive({
   root: false,
   folder1: false,
   folder2: false,
   folder3: false,
-})
+});
 
 const toggle = (key: any) => {
-  isOpen[key] = !isOpen[key]
-}
+  isOpen[key] = !isOpen[key];
+};
 </script>
 <style scoped lang="scss">
 /* Стилизация списка */

@@ -93,18 +93,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref } from 'vue';
 
 // Для хранения данных Security Group
-const groupName = ref('')
-const description = ref('')
-const vpcId = ref('')
-const securityGroupId = ref<string | null>(null)
+const groupName = ref('');
+const description = ref('');
+const vpcId = ref('');
+const securityGroupId = ref<string | null>(null);
 
 // Для хранения правил Ingress (входящий) и Egress (исходящий) трафика
-const ingressRule = ref({ protocol: 'tcp', port: 80, cidr: '0.0.0.0/0' })
-const egressRule = ref({ protocol: 'tcp', port: 443, cidr: '0.0.0.0/0' })
-const successMessage = ref<string | null>(null)
+const ingressRule = ref({ protocol: 'tcp', port: 80, cidr: '0.0.0.0/0' });
+const egressRule = ref({ protocol: 'tcp', port: 443, cidr: '0.0.0.0/0' });
+const successMessage = ref<string | null>(null);
 
 // Функция создания Security Group
 async function createSecurityGroup() {
@@ -113,7 +113,7 @@ async function createSecurityGroup() {
     groupName: groupName.value,
     description: description.value,
     vpcId: vpcId.value,
-  })
+  });
 
   // Логика HTTP-запроса для создания Security Group (например, через axios или fetch)
   // Пример: Условно считается, что ID группы будет возвращен сервером
@@ -121,36 +121,36 @@ async function createSecurityGroup() {
   // securityGroupId.value = response.data.id;
 
   // Заглушка для демонстрации
-  securityGroupId.value = 'sg-12345'
-  successMessage.value = `Security Group успешно создана с ID: ${securityGroupId.value}`
+  securityGroupId.value = 'sg-12345';
+  successMessage.value = `Security Group успешно создана с ID: ${securityGroupId.value}`;
 }
 
 // Функция добавления правила ingress
 async function addIngressRule() {
-  console.log('Добавление правила ingress:', ingressRule.value)
+  console.log('Добавление правила ingress:', ingressRule.value);
 
   if (!securityGroupId.value) {
-    alert('Создайте Security Group перед добавлением правил')
-    return
+    alert('Создайте Security Group перед добавлением правил');
+    return;
   }
 
   // Логика запроса для добавления ingress правила
   // Пример: await axios.post(`API_URL/security-groups/${securityGroupId.value}/ingress`, { ... });
-  successMessage.value = `Правило Ingress добавлено для Security Group: ${securityGroupId.value}`
+  successMessage.value = `Правило Ingress добавлено для Security Group: ${securityGroupId.value}`;
 }
 
 // Функция добавления правила egress
 async function addEgressRule() {
-  console.log('Добавление правила egress:', egressRule.value)
+  console.log('Добавление правила egress:', egressRule.value);
 
   if (!securityGroupId.value) {
-    alert('Создайте Security Group перед добавлением правил')
-    return
+    alert('Создайте Security Group перед добавлением правил');
+    return;
   }
 
   // Логика запроса для добавления egress правила
   // Пример: await axios.post(`API_URL/security-groups/${securityGroupId.value}/egress`, { ... });
-  successMessage.value = `Правило Egress добавлено для Security Group: ${securityGroupId.value}`
+  successMessage.value = `Правило Egress добавлено для Security Group: ${securityGroupId.value}`;
 }
 </script>
 

@@ -1,10 +1,10 @@
 <script lang="ts" setup>
-import type { ButtonClass } from '@/types/components'
-import { defineProps } from 'vue'
+import type { ButtonClass } from '@/types/components';
+import { defineProps } from 'vue';
 const props = defineProps<{
-  buttons: ButtonClass[]
-}>()
-console.log(props)
+  buttons: ButtonClass[];
+}>();
+console.log(props);
 </script>
 <template>
   <div class="button-line">

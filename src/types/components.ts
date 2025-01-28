@@ -1,6 +1,6 @@
 export interface ButtonClass {
-  label: string
-  action: () => void
+  label: string;
+  action: () => void;
 }
 
 export enum TypeModule {
@@ -16,6 +16,6 @@ export enum SpacePage {
   Security = 'Security',
 }
 export interface Module {
-  type: TypeModule
-  isActive: boolean
+  type: TypeModule;
+  isActive: boolean;
 }

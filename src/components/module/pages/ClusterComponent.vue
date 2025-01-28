@@ -104,11 +104,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { useRenderStore } from '@/stores'
-import { TypeModule } from '@/types/components'
-const store = useRenderStore()
+import { ref } from 'vue';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { useRenderStore } from '@/stores';
+import { TypeModule } from '@/types/components';
+const store = useRenderStore();
 
 const form = ref({
   clusterName: '',
@@ -127,23 +127,23 @@ const form = ref({
   maintenanceWindow: '',
   backup: '',
   pgConfig: '',
-})
+});
 
 const closeModal = () => {
   if (store.centerModule) {
-    store.centerModule.isActive = false
+    store.centerModule.isActive = false;
   }
-}
+};
 const backAction = () => {
   if (store.centerModule) {
-    store.centerModule.type = TypeModule.Space
+    store.centerModule.type = TypeModule.Space;
   }
-}
+};
 
 const submitForm = () => {
-  console.log('Форма отправлена', form.value)
-  closeModal()
-}
+  console.log('Форма отправлена', form.value);
+  closeModal();
+};
 </script>
 
 <style scoped>

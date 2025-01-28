@@ -29,32 +29,32 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import RadioButton from 'primevue/radiobutton'
-import InputText from 'primevue/inputtext'
-import FloatLabel from 'primevue/floatlabel'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import Button from 'primevue/button'
-import { useRenderStore } from '@/stores'
-import { TypeModule } from '@/types/components'
-const store = useRenderStore()
-const email = ref('')
-const role = ref('')
-const ingredient = ref('')
+import { ref } from 'vue';
+import RadioButton from 'primevue/radiobutton';
+import InputText from 'primevue/inputtext';
+import FloatLabel from 'primevue/floatlabel';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import Button from 'primevue/button';
+import { useRenderStore } from '@/stores';
+import { TypeModule } from '@/types/components';
+const store = useRenderStore();
+const email = ref('');
+const role = ref('');
+const ingredient = ref('');
 const search = (event) => {
-  items.value = [...Array(10).keys()].map((item) => event.query + '-' + item)
-}
+  items.value = [...Array(10).keys()].map((item) => event.query + '-' + item);
+};
 
 const backAction = () => {
   if (store.centerModule) {
-    store.centerModule.type = TypeModule.Space
+    store.centerModule.type = TypeModule.Space;
   }
-}
+};
 const closeModal = () => {
   if (store.centerModule) {
-    store.centerModule.isActive = false
+    store.centerModule.isActive = false;
   }
-}
+};
 </script>
 
 <style lang="scss" scoped>

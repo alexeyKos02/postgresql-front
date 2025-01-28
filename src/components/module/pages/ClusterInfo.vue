@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { reactive } from 'vue'
-import Knob from 'primevue/knob'
-import Button from 'primevue/button'
-const value = 50
+import { reactive } from 'vue';
+import Knob from 'primevue/knob';
+import Button from 'primevue/button';
+const value = 50;
 const clusterInfo = reactive({
   name: 'Demo Cluster',
   version: 'v1.23.0',
@@ -46,7 +46,7 @@ const clusterInfo = reactive({
   events: [{ message: 'Pod pod-1 restarted.' }, { message: 'Node node-1 is Ready.' }],
   rbac: 'Enabled',
   podSecurityPolicies: 'Enabled',
-})
+});
 </script>
 
 <template>

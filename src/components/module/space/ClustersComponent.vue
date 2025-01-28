@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import { type Cluster } from '@/types/entities'
-import TableComponent from '../TableComponent.vue'
-import { TypeModule } from '@/types/components'
-import { useRenderStore } from '@/stores'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import ScrollPanel from 'primevue/scrollpanel'
-const store = useRenderStore()
+import { type Cluster } from '@/types/entities';
+import TableComponent from '../TableComponent.vue';
+import { TypeModule } from '@/types/components';
+import { useRenderStore } from '@/stores';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import ScrollPanel from 'primevue/scrollpanel';
+const store = useRenderStore();
 const clusters: Cluster[] = Array.from({ length: 15 }, (_, index) => ({
   name: `Элемент ${index + 1}`,
-}))
+}));
 function action() {
   if (store.centerModule) {
-    store.centerModule.type = TypeModule.CreateCluster
-    store.centerModuleHistory = [...store.centerModuleHistory, TypeModule.CreateCluster]
+    store.centerModule.type = TypeModule.CreateCluster;
+    store.centerModuleHistory = [...store.centerModuleHistory, TypeModule.CreateCluster];
   }
 }
 </script>

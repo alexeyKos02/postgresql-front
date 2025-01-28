@@ -1,19 +1,19 @@
 <script lang="ts" setup>
-import { useRenderStore } from '@/stores'
-import { TypeModule } from '@/types/components'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { defineProps } from 'vue'
-import { UserRole, type Cluster, type SecurityGroup, type User } from '@/types/entities'
-import Tag from 'primevue/tag'
+import { useRenderStore } from '@/stores';
+import { TypeModule } from '@/types/components';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { defineProps } from 'vue';
+import { UserRole, type Cluster, type SecurityGroup, type User } from '@/types/entities';
+import Tag from 'primevue/tag';
 const props = defineProps<{
-  users?: User[]
-  clusters?: Cluster[]
-  securityGoups?: SecurityGroup[]
-}>()
-const store = useRenderStore()
+  users?: User[];
+  clusters?: Cluster[];
+  securityGoups?: SecurityGroup[];
+}>();
+const store = useRenderStore();
 function openInfo() {
   if (store.centerModule) {
-    store.centerModule.type = TypeModule.ClusterInfo
+    store.centerModule.type = TypeModule.ClusterInfo;
   }
 }
 </script>

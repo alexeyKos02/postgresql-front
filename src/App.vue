@@ -1,16 +1,18 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
-import { RouterView, useRouter } from 'vue-router'
-import { PageName } from './styles'
+import { onMounted } from 'vue';
+import { RouterView, useRouter } from 'vue-router';
+import { PageName } from './styles';
+import ToolbarComponent from './components/ToolbarComponent.vue';
 
-const router = useRouter()
+const router = useRouter();
 
 onMounted(() => {
   // router.push({ name: PageName.Main })
-})
+});
 </script>
 
 <template>
+  <ToolbarComponent />
   <RouterView />
 </template>
 

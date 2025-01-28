@@ -1,43 +1,43 @@
 <script setup lang="ts">
-import type { ContextMenuElement } from '@/types'
-import { ref, reactive, onMounted, onBeforeUnmount, defineProps } from 'vue'
+import type { ContextMenuElement } from '@/types';
+import { ref, reactive, onMounted, onBeforeUnmount, defineProps } from 'vue';
 
 const props = defineProps<{
-  elements: ContextMenuElement[]
-}>()
+  elements: ContextMenuElement[];
+}>();
 // Позиция меню
-const menuPosition = reactive({ x: 0, y: 0 })
+const menuPosition = reactive({ x: 0, y: 0 });
 // Видимость меню
-const isMenuVisible = ref<boolean>(false)
+const isMenuVisible = ref<boolean>(false);
 
 // Показать контекстное меню
 function showMenu(event: MouseEvent) {
-  hideMenu()
-  menuPosition.x = event.clientX
-  menuPosition.y = event.clientY
-  isMenuVisible.value = true
+  hideMenu();
+  menuPosition.x = event.clientX;
+  menuPosition.y = event.clientY;
+  isMenuVisible.value = true;
 }
 
 // Скрыть контекстное меню
 function hideMenu() {
-  isMenuVisible.value = false
+  isMenuVisible.value = false;
 }
 
 // Скрывать меню при клике вне его (глобальный обработчик)
 function handleGlobalClick(event: MouseEvent) {
-  const target = event.target as HTMLElement
+  const target = event.target as HTMLElement;
   if (!target.closest('.context-menu')) {
-    hideMenu()
+    hideMenu();
   }
 }
 
 onMounted(() => {
-  window.addEventListener('click', handleGlobalClick)
-})
+  window.addEventListener('click', handleGlobalClick);
+});
 
 onBeforeUnmount(() => {
-  window.removeEventListener('click', handleGlobalClick)
-})
+  window.removeEventListener('click', handleGlobalClick);
+});
 </script>
 
 <template>

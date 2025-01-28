@@ -1,15 +1,15 @@
 <script lang="ts" setup>
-import { computed, reactive, ref } from 'vue'
+import { computed, reactive, ref } from 'vue';
 
-const signUp = ref<boolean>(true)
-const signUpForForm = ref<boolean>(true)
+const signUp = ref<boolean>(true);
+const signUpForForm = ref<boolean>(true);
 // Состояние формы
 const form = reactive({
   username: '',
   email: '',
   password: '',
   secondName: '',
-})
+});
 
 // Состояние ошибок
 const errors = reactive({
@@ -17,47 +17,47 @@ const errors = reactive({
   email: '',
   password: '',
   secondName: '',
-})
+});
 // Валидация формы
 const validateForm = (): boolean => {
-  errors.username = form.username.trim() ? '' : 'Имя пользователя обязательно.'
-  errors.secondName = form.secondName.trim() ? '' : 'Фамилия пользователя обязательна.'
-  errors.email = /\S+@\S+\.\S+/.test(form.email) ? '' : 'Введите корректный E-mail.'
-  errors.password = form.password.length >= 6 ? '' : 'Пароль должен быть не менее 6 символов.'
+  errors.username = form.username.trim() ? '' : 'Имя пользователя обязательно.';
+  errors.secondName = form.secondName.trim() ? '' : 'Фамилия пользователя обязательна.';
+  errors.email = /\S+@\S+\.\S+/.test(form.email) ? '' : 'Введите корректный E-mail.';
+  errors.password = form.password.length >= 6 ? '' : 'Пароль должен быть не менее 6 символов.';
 
-  return !errors.username && !errors.email && !errors.password
-}
+  return !errors.username && !errors.email && !errors.password;
+};
 
 const titleText = computed(() => {
-  return signUpForForm.value ? 'Регистрация' : 'вход'
-})
+  return signUpForForm.value ? 'Регистрация' : 'вход';
+});
 
 function changeType() {
-  resetFields(errors)
-  resetFields(form)
+  resetFields(errors);
+  resetFields(form);
 
   if (!signUp.value) {
-    signUp.value = !signUp.value
+    signUp.value = !signUp.value;
     setTimeout(() => {
-      signUpForForm.value = !signUpForForm.value
-    }, 250)
+      signUpForForm.value = !signUpForForm.value;
+    }, 250);
   } else {
-    signUp.value = !signUp.value
-    signUpForForm.value = !signUpForForm.value
+    signUp.value = !signUp.value;
+    signUpForForm.value = !signUpForForm.value;
   }
 }
 function resetFields(fields: any) {
   Object.keys(fields).forEach((key) => {
-    fields[key] = ''
-  })
+    fields[key] = '';
+  });
 }
 // Обработка отправки формы
 const handleSubmit = () => {
   if (validateForm()) {
-    alert(`Пользователь зарегистрирован:\nИмя: ${form.username}\nE-mail: ${form.email}`)
+    alert(`Пользователь зарегистрирован:\nИмя: ${form.username}\nE-mail: ${form.email}`);
     // Здесь можно выполнить запрос к серверу
   }
-}
+};
 </script>
 
 <template>

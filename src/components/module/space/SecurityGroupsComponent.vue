@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import type { SecurityGroup } from '@/types/entities'
-import TableComponent from '../TableComponent.vue'
-import ScrollPanel from 'primevue/scrollpanel'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { useRenderStore } from '@/stores'
-import { TypeModule } from '@/types/components'
+import type { SecurityGroup } from '@/types/entities';
+import TableComponent from '../TableComponent.vue';
+import ScrollPanel from 'primevue/scrollpanel';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { useRenderStore } from '@/stores';
+import { TypeModule } from '@/types/components';
 
-const store = useRenderStore()
+const store = useRenderStore();
 
 const securityGroups: SecurityGroup[] = [
   { name: 'SecurityGroup1', id: 'SG-001' },
@@ -19,11 +19,11 @@ const securityGroups: SecurityGroup[] = [
   { name: 'SecurityGroup8', id: 'SG-008' },
   { name: 'SecurityGroup9', id: 'SG-009' },
   { name: 'SecurityGroup10', id: 'SG-010' },
-]
+];
 function action() {
   if (store.centerModule) {
-    store.centerModule.type = TypeModule.AddSecurityGroup
-    store.centerModuleHistory = [...store.centerModuleHistory, TypeModule.AddSecurityGroup]
+    store.centerModule.type = TypeModule.AddSecurityGroup;
+    store.centerModuleHistory = [...store.centerModuleHistory, TypeModule.AddSecurityGroup];
   }
 }
 </script>

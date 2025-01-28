@@ -1,5 +1,5 @@
-import { SpacePage, TypeModule, type Module } from '@/types/components'
-import { defineStore } from 'pinia'
+import { SpacePage, TypeModule, type Module } from '@/types/components';
+import { defineStore } from 'pinia';
 
 export const useRenderStore = defineStore('render', {
   state: () => ({
@@ -8,4 +8,4 @@ export const useRenderStore = defineStore('render', {
     SpacePage: SpacePage.Clusters as SpacePage,
   }),
   actions: {},
-})
+});

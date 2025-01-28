@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import LeftMenu from '@/components/LeftMenu.vue'
-import RightComponent from '@/components/RightComponent.vue'
-import ClusterInfo from '@/components/module/pages/ClusterInfo.vue'
+import LeftMenu from '@/components/LeftMenu.vue';
+import RightComponent from '@/components/RightComponent.vue';
+import ClusterInfo from '@/components/module/pages/ClusterInfo.vue';
 </script>
 
 <template>
@@ -21,12 +21,10 @@ import ClusterInfo from '@/components/module/pages/ClusterInfo.vue'
   display: flex; /* Используем Flexbox */
   width: 100%; /* Ширина контейнера */
   height: 100%;
-  border: 1px solid #000;
 }
 
 .element {
   flex: 1; /* Элементы растягиваются одинаково */
-  border: 1px solid #ccc;
 }
 
 .element-1 {

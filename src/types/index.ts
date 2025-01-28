@@ -1,4 +1,4 @@
 export interface ContextMenuElement {
-  title: string
-  action: () => void
+  title: string;
+  action: () => void;
 }

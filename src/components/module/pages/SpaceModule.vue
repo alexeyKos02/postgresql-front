@@ -1,42 +1,42 @@
 <script lang="ts" setup>
-import { reactive } from 'vue'
-import ButtonsComponent from '@/components/module/ButtonsComponent.vue'
-import TableComponent from '@/components/module/TableComponent.vue'
-import { useRenderStore } from '@/stores'
-import { SpacePage, TypeModule } from '@/types/components'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import type { Cluster } from '@/types/entities'
-import UsersComponents from '../space/UsersComponents.vue'
-import ClustersComponent from '../space/ClustersComponent.vue'
-import AddUserPage from './AddUserPage.vue'
-import SecurityGroupsComponent from '../space/SecurityGroupsComponent.vue'
-const store = useRenderStore()
+import { reactive } from 'vue';
+import ButtonsComponent from '@/components/module/ButtonsComponent.vue';
+import TableComponent from '@/components/module/TableComponent.vue';
+import { useRenderStore } from '@/stores';
+import { SpacePage, TypeModule } from '@/types/components';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import type { Cluster } from '@/types/entities';
+import UsersComponents from '../space/UsersComponents.vue';
+import ClustersComponent from '../space/ClustersComponent.vue';
+import AddUserPage from './AddUserPage.vue';
+import SecurityGroupsComponent from '../space/SecurityGroupsComponent.vue';
+const store = useRenderStore();
 // Линия кнопок
 const buttons = reactive([
   {
     label: 'Кластеры',
     action: () => {
-      store.SpacePage = SpacePage.Clusters
+      store.SpacePage = SpacePage.Clusters;
     },
   },
   {
     label: 'Пользователи',
     action: () => {
-      store.SpacePage = SpacePage.Users
+      store.SpacePage = SpacePage.Users;
     },
   },
   {
     label: 'Security groups',
     action: () => {
-      store.SpacePage = SpacePage.Security
+      store.SpacePage = SpacePage.Security;
     },
   },
-])
+]);
 const closeModal = () => {
   if (store.centerModule) {
-    store.centerModule.isActive = false
+    store.centerModule.isActive = false;
   }
-}
+};
 </script>
 
 <template>
