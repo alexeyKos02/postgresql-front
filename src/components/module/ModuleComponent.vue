@@ -25,8 +25,8 @@ const closeModal = () => {
 </script>
 <template>
   <transition name="fade">
-    <div v-if="store.centerModule?.isActive">
-      <div class="control-panel">
+    <div v-if="store.centerModule?.isActive" style="height: 100%;">
+      <div class="control-panel" v-if="!store.centerModule?.isActive">
         <FontAwesomeIcon
           v-if="goingBack"
           icon="fa-solid fa-circle-arrow-left"
@@ -55,12 +55,13 @@ const closeModal = () => {
   flex-direction: column;
   overflow: scroll;
   &--center {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 70%;
-    height: 70%;
+    height: 100%;
+    // position: absolute;
+    // top: 50%;
+    // left: 50%;
+    // transform: translate(-50%, -50%);
+    // width: 70%;
+    // height: 70%;
     padding: 2% 3%;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Добавляет тень */
     border-radius: 10px; /* Скругляет углы */

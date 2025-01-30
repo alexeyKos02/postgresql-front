@@ -1,40 +1,139 @@
 <script lang="ts" setup>
-import LeftMenu from '@/components/LeftMenu.vue';
+import FileTree from '@/components/FileTree.vue';
+import { ref } from 'vue';
+import Splitter from 'primevue/splitter';
+import SplitterPanel from 'primevue/splitterpanel';
+import { useRenderStore } from '@/stores';
 import RightComponent from '@/components/RightComponent.vue';
-import ClusterInfo from '@/components/module/pages/ClusterInfo.vue';
+
+const store = useRenderStore();
+
+const fullView = ref<boolean>(false);
+
+// const fullView = ref<boolean>(store.centerModule?.isActive ?? false);
+const close = ref<boolean>(true);
+
+function chahgeView() {
+  close.value = !close.value;
+}
 </script>
 
 <template>
-  <div class="container">
-    <div class="element element-1"><LeftMenu></LeftMenu></div>
-    <!-- <div class="element element-2"><ClusterInfo></ClusterInfo></div> -->
-    <div class="element element-2"><RightComponent></RightComponent></div>
+  <div class="container" :class="{'container--divided': !fullView}">
+    <div
+      class="tree-container"
+      :class="{
+        'tree-container--open': !close && !fullView,
+        'tree-container--full': fullView,
+      }"
+    >
+      <i v-show="close && !fullView" class="pi pi-bars icon" @click="chahgeView"></i>
+      <i v-if="!close && !fullView" class="pi pi-times icon" @click="chahgeView"></i>
+      <!-- <FileTree v-if="(!close && !fullView) || true" /> -->
+      <FileTree v-if="!close || fullView" />
+    </div>
+    <div class="main-component" :class="{ 'main-component--full': fullView }">
+      <div v-if="!fullView">
+        <Splitter style="height: 90vh">
+          <SplitterPanel class="flex items-center justify-center" :size="50" :minSize="10">
+            <Splitter layout="vertical">
+              <SplitterPanel class="flex items-center justify-center" :size="50">
+                Panel 1
+              </SplitterPanel>
+              <SplitterPanel :size="50"> Panel 4 </SplitterPanel>
+            </Splitter>
+          </SplitterPanel>
+          <SplitterPanel class="flex items-center justify-center" :size="50" :minSize="10">
+            <Splitter layout="vertical">
+              <SplitterPanel class="flex items-center justify-center" :size="50">
+                Panel 2
+              </SplitterPanel>
+              <SplitterPanel :size="50"> Panel 3 </SplitterPanel>
+            </Splitter>
+          </SplitterPanel>
+        </Splitter>
+      </div>
+      <RightComponent v-if="fullView" />
+    </div>
   </div>
-  <!-- <LeftMenu></LeftMenu>
-  <SpaceModule></SpaceModule> -->
-  <!-- <ContextMenu></ContextMenu> -->
-  <!-- <FileTree></FileTree> -->
 </template>
 
 <style scoped lang="scss">
 .container {
-  display: flex; /* Используем Flexbox */
-  width: 100%; /* Ширина контейнера */
-  height: 100%;
-}
-
-.element {
-  flex: 1; /* Элементы растягиваются одинаково */
-}
-
-.element-1 {
+  margin-left: 2vw;
+  margin-right: 2vw;
+  padding-top: 10vh;
+  flex: 1;
   display: flex;
-  flex: 0 0 auto; /* Не растягиваем, а фиксируем ширину */ /* Устанавливаем начальную ширину для первого элемента */
+  // width: 100%; /* Ширина контейнера */
+  // height: 100%;
+  &--divided {
+    gap: 1rem;
+  }
+}
+.tree-container {
+  // position: absolute;
+  background: white;
+  // margin-left: 1vw;
+  // width: calc(2rem + 2px);
+  // height: calc(2rem + 2px);
+  border: 1px solid var(--p-toolbar-border-color);
+  border-radius: 10px;
+  transition: all 0.5s;
+  z-index: 999;
+  height: calc(2rem + 2px);
+  width: calc(2rem + 2px);
+  &--open {
+    width: 15%;
+    height: 100%;
+  }
+  &--full {
+    width: 20%;
+    height: 100%;
+    margin-left: 0;
+    z-index: 0;
+  }
+}
+.main-component {
+  float: right;
+  width: 97%;
+  // margin-top: calc(2rem + 2px);
+  &--full {
+    position: relative;
+    right: 0;
+    width: 80%;
+    height: 100%;
+  }
+}
+.icon {
+  padding: 0.5rem;
+  font-size: 1rem;
+}
+.icon:hover {
+  cursor: pointer;
 }
 
-.element-2 {
-  position: relative;
-  display: flex;
-  flex: 1; /* Второй элемент будет занимать оставшуюся ширину */
+.v-enter-active,
+.v-leave-active {
+  transition: opacity 0.5s ease;
 }
+
+.v-enter-from,
+.v-leave-to {
+  opacity: 0;
+}
+// .element {
+//   flex: 1; /* Элементы растягиваются одинаково */
+// }
+
+// .element-1 {
+//   display: flex;
+//   flex: 0 0 auto; /* Не растягиваем, а фиксируем ширину */ /* Устанавливаем начальную ширину для первого элемента */
+// }
+
+// .element-2 {
+//   position: relative;
+//   display: flex;
+//   flex: 1; /* Второй элемент будет занимать оставшуюся ширину */
+// }
 </style>

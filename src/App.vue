@@ -24,14 +24,19 @@ html {
   font-size: 16px; /* Базовый размер */
 }
 body {
+  display: block;
   font-family: 'Duepun', sans-serif;
+  margin: 0;
   /* font-family: Flame, sans-serif; */
 }
 #app {
-  position: absolute;
+  display: flex;
+    height: 100vh;
+    width: 100vw;
+  /* position: absolute;
   top: 0;
   left: 0;
   height: 100%;
-  width: 100%;
+  width: 100%; */
 }
 </style>

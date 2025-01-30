@@ -48,7 +48,7 @@ function openNewModule(popover: object | null) {
 <template>
   <div class="card">
     <Toast />
-    <Toolbar>
+    <Toolbar class="toolbar">
       <template #start>
         <div class="start-comp">
           <img class="logo" alt="icon" src="../assets/icon.svg" />
@@ -87,6 +87,15 @@ function openNewModule(popover: object | null) {
 </template>
 
 <style scoped lang="scss">
+.card {
+  position: fixed;
+  width: 100%;
+  z-index: 1000;
+}
+.toolbar {
+  padding-left: 2vw;
+  padding-right: 2vw;
+}
 .start-comp {
   display: flex;
   align-items: center;
