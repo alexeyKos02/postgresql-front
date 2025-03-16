@@ -5,12 +5,17 @@ import Splitter from 'primevue/splitter';
 import SplitterPanel from 'primevue/splitterpanel';
 import { useRenderStore } from '@/stores';
 import RightComponent from '@/components/RightComponent.vue';
+import type { Module } from '@/types/components';
+import ModuleComponent from '@/components/module/ModuleComponent.vue';
+import FillModule from '@/components/FillModule.vue';
 
 const store = useRenderStore();
 
-const fullView = ref<boolean>(false);
+// const fullView = ref<boolean>(false);
 
-// const fullView = ref<boolean>(store.centerModule?.isActive ?? false);
+const fullView = ref<boolean>(store.modules[0]?.isActive ?? false);
+
+const dividedModules = ref<Module[]>(store.modules);
 const close = ref<boolean>(true);
 
 function chahgeView() {
@@ -19,7 +24,7 @@ function chahgeView() {
 </script>
 
 <template>
-  <div class="container" :class="{'container--divided': !fullView}">
+  <div class="container" :class="{ 'container--divided': !fullView }">
     <div
       class="tree-container"
       :class="{
@@ -38,17 +43,17 @@ function chahgeView() {
           <SplitterPanel class="flex items-center justify-center" :size="50" :minSize="10">
             <Splitter layout="vertical">
               <SplitterPanel class="flex items-center justify-center" :size="50">
-                Panel 1
+                <FillModule :module="dividedModules[1]" />
               </SplitterPanel>
-              <SplitterPanel :size="50"> Panel 4 </SplitterPanel>
+              <SplitterPanel :size="50"> <FillModule :module="dividedModules[4]" /> </SplitterPanel>
             </Splitter>
           </SplitterPanel>
           <SplitterPanel class="flex items-center justify-center" :size="50" :minSize="10">
             <Splitter layout="vertical">
               <SplitterPanel class="flex items-center justify-center" :size="50">
-                Panel 2
+                <FillModule :module="dividedModules[2]" />
               </SplitterPanel>
-              <SplitterPanel :size="50"> Panel 3 </SplitterPanel>
+              <SplitterPanel :size="50"> <FillModule :module="dividedModules[3]" /></SplitterPanel>
             </Splitter>
           </SplitterPanel>
         </Splitter>

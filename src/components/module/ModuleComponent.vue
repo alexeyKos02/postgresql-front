@@ -23,9 +23,26 @@ const closeModal = () => {
   }
 };
 </script>
+
 <template>
+  <div style="height: 100%">
+    <div class="control-panel" v-if="!store.modules[0]?.isActive">
+      <FontAwesomeIcon
+        v-if="goingBack"
+        icon="fa-solid fa-circle-arrow-left"
+        class="back-btn"
+        @click="backAction"
+      />
+      <FontAwesomeIcon icon="fa-solid fa-circle-xmark" class="close-btn" @click="closeModal" />
+    </div>
+    <div class="module" :class="{ 'module--center': moduleType === 'center' }">
+      <slot></slot>
+    </div>
+  </div>
+</template>
+<!-- <template>
   <transition name="fade">
-    <div v-if="store.centerModule?.isActive" style="height: 100%;">
+    <div v-if="store.centerModule?.isActive" style="height: 100%">
       <div class="control-panel" v-if="!store.centerModule?.isActive">
         <FontAwesomeIcon
           v-if="goingBack"
@@ -40,7 +57,7 @@ const closeModal = () => {
       </div>
     </div>
   </transition>
-</template>
+</template> -->
 <style lang="scss" scoped>
 .fade-enter-active,
 .fade-leave-active {
@@ -60,7 +77,7 @@ const closeModal = () => {
     // top: 50%;
     // left: 50%;
     // transform: translate(-50%, -50%);
-    // width: 70%;
+    width: 100%;
     // height: 70%;
     padding: 2% 3%;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Добавляет тень */

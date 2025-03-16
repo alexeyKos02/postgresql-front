@@ -21,8 +21,8 @@ const securityGroups: SecurityGroup[] = [
   { name: 'SecurityGroup10', id: 'SG-010' },
 ];
 function action() {
-  if (store.centerModule) {
-    store.centerModule.type = TypeModule.AddSecurityGroup;
+  if (store.modules[0]) {
+    store.modules[0].type = TypeModule.AddSecurityGroup;
     store.centerModuleHistory = [...store.centerModuleHistory, TypeModule.AddSecurityGroup];
   }
 }

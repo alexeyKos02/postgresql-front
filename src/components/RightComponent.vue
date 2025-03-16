@@ -2,40 +2,39 @@
 import ModuleComponent from '@/components/module/ModuleComponent.vue';
 import ClusterComponent from '@/components/module/pages/ClusterComponent.vue';
 import { useRenderStore } from '@/stores';
-import { TypeModule } from '@/types/components';
+import { TypeModule, type Module } from '@/types/components';
 import SpaceModule from '@/components/module/pages/SpaceModule.vue';
 import ClusterInfo from './module/pages/ClusterInfo.vue';
 import AddUserPage from './module/pages/AddUserPage.vue';
 import AddSecurityGroup from './module/pages/AddSecurityGroup.vue';
+import { ref } from 'vue';
 const store = useRenderStore();
+const module = ref<Module | null>(store.modules[0]);
 </script>
 
 <template>
   <transition name="fade">
-    <ModuleComponent v-if="store.centerModule?.type === TypeModule.CreateCluster">
+    <ModuleComponent v-if="module?.type === TypeModule.CreateCluster">
       <ClusterComponent />
     </ModuleComponent>
   </transition>
   <transition name="fade">
-    <ModuleComponent v-if="store.centerModule?.type === TypeModule.Space">
-      <SpaceModule />
+    <ModuleComponent v-if="module?.type === TypeModule.Space">
+      <SpaceModule :module="module" />
     </ModuleComponent>
   </transition>
   <transition name="fade">
-    <ModuleComponent v-if="store.centerModule?.type === TypeModule.ClusterInfo">
+    <ModuleComponent v-if="module?.type === TypeModule.ClusterInfo">
       <ClusterInfo />
     </ModuleComponent>
   </transition>
   <transition name="fade">
-    <ModuleComponent v-if="store.centerModule?.type === TypeModule.AddUser" class="add-user-module">
+    <ModuleComponent v-if="module?.type === TypeModule.AddUser" class="add-user-module">
       <AddUserPage class="add-user" />
     </ModuleComponent>
   </transition>
   <transition name="fade">
-    <ModuleComponent
-      v-if="store.centerModule?.type === TypeModule.AddSecurityGroup"
-      class="add-user-module"
-    >
+    <ModuleComponent v-if="module?.type === TypeModule.AddSecurityGroup" class="add-user-module">
       <AddSecurityGroup class="add-user" />
     </ModuleComponent>
   </transition>

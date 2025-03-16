@@ -1,34 +1,38 @@
 <script lang="ts" setup>
 import { reactive } from 'vue';
 import ButtonsComponent from '@/components/module/ButtonsComponent.vue';
-import TableComponent from '@/components/module/TableComponent.vue';
 import { useRenderStore } from '@/stores';
-import { SpacePage, TypeModule } from '@/types/components';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import type { Cluster } from '@/types/entities';
+import { SpacePage, type Module } from '@/types/components';
 import UsersComponents from '../space/UsersComponents.vue';
 import ClustersComponent from '../space/ClustersComponent.vue';
-import AddUserPage from './AddUserPage.vue';
 import SecurityGroupsComponent from '../space/SecurityGroupsComponent.vue';
 const store = useRenderStore();
+const props = defineProps<{
+  module: Module;
+}>();
+
+function changeType(type: SpacePage) {
+  const localModule = store.modules[props.module?.location];
+  localModule.spacePage = type;
+}
 // Линия кнопок
 const buttons = reactive([
   {
     label: 'Кластеры',
     action: () => {
-      store.SpacePage = SpacePage.Clusters;
+      changeType(SpacePage.Clusters);
     },
   },
   {
     label: 'Пользователи',
     action: () => {
-      store.SpacePage = SpacePage.Users;
+      changeType(SpacePage.Users);
     },
   },
   {
     label: 'Security groups',
     action: () => {
-      store.SpacePage = SpacePage.Security;
+      changeType(SpacePage.Security);
     },
   },
 ]);
@@ -45,9 +49,9 @@ const closeModal = () => {
   </div>
   <ButtonsComponent :buttons="buttons"></ButtonsComponent>
   <div class="main-content">
-    <UsersComponents v-if="store.SpacePage === SpacePage.Users" />
-    <ClustersComponent v-if="store.SpacePage === SpacePage.Clusters" />
-    <SecurityGroupsComponent v-if="store.SpacePage === SpacePage.Security" />
+    <UsersComponents v-if="module.spacePage === SpacePage.Users" />
+    <ClustersComponent v-if="module.spacePage === SpacePage.Clusters" />
+    <SecurityGroupsComponent v-if="module.spacePage === SpacePage.Security" />
   </div>
 </template>
 

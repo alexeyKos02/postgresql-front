@@ -1,100 +1,31 @@
 <template>
-  <div class="security-group-creator">
-    <h1>Создание Security Group</h1>
-    <!-- Форма для создания Security Group -->
-    <form @submit.prevent="createSecurityGroup">
-      <div>
-        <label for="group-name">Название группы</label>
-        <input v-model="groupName" type="text" id="group-name" required />
+    <div class="modal-header">
+    <h1>Создание нового кластера</h1>
+  </div>
+  <div>
+    <form @submit.prevent="createSecurityGroup" class="security-group-creator">
+      <div class="form-group">
+        <label for="name">Название группы</label>
+        <InputText id="name" v-model="value" aria-describedby="name-help" required/>
+
+        <label for="CIDR">CIDR входящего потока</label>
+        <InputText id="CIDR" v-model="cidr" aria-describedby="CIDR-help" required/>
+        <Button icon="pi pi-plus" aria-label="Filter" />
       </div>
-      <div>
-        <label for="description">Описание</label>
-        <input v-model="description" type="text" id="description" required />
+      <div class="form-group">
+        <button type="submit">Создать группу</button>
       </div>
-      <div>
-        <label for="vpc-id">ID VPC</label>
-        <input v-model="vpcId" type="text" id="vpc-id" required />
-      </div>
-      <button type="submit">Создать группу</button>
     </form>
-
-    <hr />
-
-    <!-- Секция для добавления ingress правил -->
-    <div>
-      <h2>Добавление правил входящего (Ingress) трафика</h2>
-      <form @submit.prevent="addIngressRule">
-        <div>
-          <label for="ingress-protocol">Протокол</label>
-          <input
-            v-model="ingressRule.protocol"
-            type="text"
-            id="ingress-protocol"
-            placeholder="tcp"
-            required
-          />
-        </div>
-        <div>
-          <label for="ingress-port">Порт</label>
-          <input v-model.number="ingressRule.port" type="number" id="ingress-port" required />
-        </div>
-        <div>
-          <label for="ingress-cidr">CIDR</label>
-          <input
-            v-model="ingressRule.cidr"
-            type="text"
-            id="ingress-cidr"
-            placeholder="0.0.0.0/0"
-            required
-          />
-        </div>
-        <button type="submit">Добавить правило</button>
-      </form>
-    </div>
-
-    <hr />
-
-    <!-- Секция для добавления egress правил -->
-    <div>
-      <h2>Добавление правил исходящего (Egress) трафика</h2>
-      <form @submit.prevent="addEgressRule">
-        <div>
-          <label for="egress-protocol">Протокол</label>
-          <input
-            v-model="egressRule.protocol"
-            type="text"
-            id="egress-protocol"
-            placeholder="tcp"
-            required
-          />
-        </div>
-        <div>
-          <label for="egress-port">Порт</label>
-          <input v-model.number="egressRule.port" type="number" id="egress-port" required />
-        </div>
-        <div>
-          <label for="egress-cidr">CIDR</label>
-          <input
-            v-model="egressRule.cidr"
-            type="text"
-            id="egress-cidr"
-            placeholder="0.0.0.0/0"
-            required
-          />
-        </div>
-        <button type="submit">Добавить правило</button>
-      </form>
-    </div>
-
-    <hr />
-
-    <div v-if="successMessage" class="success-message">{{ successMessage }}</div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import InputText from 'primevue/inputtext';
+import Button from 'primevue/button';
 
+const value = ref(null);
+const cidr = ref(null);
 // Для хранения данных Security Group
 const groupName = ref('');
 const description = ref('');
@@ -155,9 +86,23 @@ async function addEgressRule() {
 </script>
 
 <style scoped>
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 10px;
+}
 .security-group-creator {
-  max-width: 600px;
-  margin: auto;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap; /* Позволяет переносить элементы на следующую строку */
+  gap: 20px;
+  .form-group {
+    flex: 1 1 calc(50% - 20px); /* Элемент занимает 50% ширины контейнера с учётом отступов */
+    min-width: 200px; /* Минимальная ширина */
+    box-sizing: border-box; /* Учитывает padding и border */
+  }
 }
 
 form div {

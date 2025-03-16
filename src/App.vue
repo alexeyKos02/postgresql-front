@@ -7,7 +7,7 @@ import ToolbarComponent from './components/ToolbarComponent.vue';
 const router = useRouter();
 
 onMounted(() => {
-  // router.push({ name: PageName.Main })
+  router.push({ name: PageName.Main });
 });
 </script>
 
@@ -21,22 +21,16 @@ onMounted(() => {
   box-sizing: border-box;
 }
 html {
-  font-size: 16px; /* Базовый размер */
+  font-size: 16px;
 }
 body {
   display: block;
   font-family: 'Duepun', sans-serif;
   margin: 0;
-  /* font-family: Flame, sans-serif; */
 }
 #app {
   display: flex;
-    height: 100vh;
-    width: 100vw;
-  /* position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 100%; */
+  height: 100vh;
+  width: 100vw;
 }
 </style>

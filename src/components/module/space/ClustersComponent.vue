@@ -10,8 +10,8 @@ const clusters: Cluster[] = Array.from({ length: 15 }, (_, index) => ({
   name: `Элемент ${index + 1}`,
 }));
 function action() {
-  if (store.centerModule) {
-    store.centerModule.type = TypeModule.CreateCluster;
+  if (store.modules[0]) {
+    store.modules[0].type = TypeModule.CreateCluster;
     store.centerModuleHistory = [...store.centerModuleHistory, TypeModule.CreateCluster];
   }
 }

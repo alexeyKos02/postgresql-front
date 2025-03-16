@@ -12,8 +12,8 @@ const props = defineProps<{
 }>();
 const store = useRenderStore();
 function openInfo() {
-  if (store.centerModule) {
-    store.centerModule.type = TypeModule.ClusterInfo;
+  if (store.modules[0]) {
+    store.modules[0].type = TypeModule.ClusterInfo;
   }
 }
 </script>

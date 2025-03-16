@@ -1,3 +1,5 @@
+import type { Cluster } from './entities';
+
 export interface ButtonClass {
   label: string;
   action: () => void;
@@ -15,7 +17,11 @@ export enum SpacePage {
   Users = 'Users',
   Security = 'Security',
 }
+// локации от 1 до 5, где 5 это центральная локация
 export interface Module {
   type: TypeModule;
   isActive: boolean;
+  location: number;
+  spacePage?: SpacePage;
+  cluster: Cluster;
 }
