@@ -74,7 +74,6 @@ h1 {
   height: auto;
   display: flex;
   justify-content: center;
-  align-items: center;
 }
 .add-user {
 }

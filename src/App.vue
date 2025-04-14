@@ -1,18 +1,26 @@
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { RouterView, useRouter } from 'vue-router';
-import { PageName } from './styles';
 import ToolbarComponent from './components/ToolbarComponent.vue';
+import GlobalLoader from './components/GlobalLoader.vue';
+import { useRenderStore } from '@/stores';
 
+const store = useRenderStore();
 const router = useRouter();
 
-onMounted(() => {
-  router.push({ name: PageName.Main });
+onMounted(async () => {
+  try {
+    store.isLoading = true;
+    await store.fetchWorkspaces();
+  } finally {
+    store.isLoading = false;
+  }
 });
 </script>
 
 <template>
   <ToolbarComponent />
+  <GlobalLoader />
   <RouterView />
 </template>
 

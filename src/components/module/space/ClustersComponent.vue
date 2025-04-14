@@ -5,11 +5,30 @@ import { TypeModule } from '@/types/components';
 import { useRenderStore } from '@/stores';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import ScrollPanel from 'primevue/scrollpanel';
+import { useToast } from 'primevue/usetoast';
+import { ref } from 'vue';
+
+const toast = useToast();
 const store = useRenderStore();
-const clusters: Cluster[] = Array.from({ length: 15 }, (_, index) => ({
-  name: `Элемент ${index + 1}`,
-}));
-function action() {
+const clusters = ref<Cluster[]>(
+  Array.from({ length: 15 }, (_, index) => ({
+    name: `Кластер ${index + 1}`,
+  })),
+);
+
+function reload(id: string) {
+  toast.add({ severity: 'success', summary: `Перезагружен`, detail: id, life: 3000 });
+}
+function stop(id: string) {
+  toast.add({ severity: 'warn', summary: `Остановлен`, detail: id, life: 3000 });
+}
+
+function remove(id: string) {
+  clusters.value = clusters.value.filter((cluster) => cluster.name !== id);
+  toast.add({ severity: 'error', summary: `Удален`, detail: id, life: 3000 });
+}
+
+async function action() {
   if (store.modules[0]) {
     store.modules[0].type = TypeModule.CreateCluster;
     store.centerModuleHistory = [...store.centerModuleHistory, TypeModule.CreateCluster];
@@ -29,7 +48,7 @@ function action() {
       },
     }"
   >
-    <TableComponent :clusters="clusters"></TableComponent>
+    <TableComponent :clusters="clusters" :functions="[reload, stop, remove]"></TableComponent>
   </ScrollPanel>
 </template>
 <style scoped>

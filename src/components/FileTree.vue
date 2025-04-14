@@ -1,101 +1,87 @@
 <template>
   <div class="card">
     <Toast />
-    <Tree
-      v-model:selectionKeys="selectedKey"
-      :value="nodes"
-      selectionMode="single"
-      :metaKeySelection="false"
-      @nodeSelect="onNodeSelect"
-      @nodeUnselect="onNodeUnselect"
-      @nodeExpand="onNodeExpand"
-      @nodeCollapse="onNodeCollapse"
-      class="w-full md:w-[30rem]"
-    ></Tree>
+
+    <div class="tree-scroll-container">
+      <Tree
+        v-model:selectionKeys="selectedKey"
+        :value="nodes"
+        selectionMode="single"
+        :metaKeySelection="false"
+        class="w-full md:w-[30rem]"
+      >
+        <template #default="slotProps">
+          <div class="node-content">
+            <span>{{ slotProps.node.label }}</span>
+          </div>
+        </template>
+      </Tree>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useToast } from 'primevue/usetoast';
 import type { TreeNode } from 'primevue/treenode';
-
 import Tree from 'primevue/tree';
+import { useRenderStore } from '@/stores';
+import { storeToRefs } from 'pinia';
 
-const nodes = ref<TreeNode[]>([
+const store = useRenderStore();
+const { workspaces } = storeToRefs(store); // Референс на store
+
+const toast = useToast();
+const selectedKey = ref({});
+
+// Динамически формируем nodes
+const nodes = computed<TreeNode[]>(() => [
   {
-    label: 'first',
+    label: 'Пространства',
     key: '0',
     icon: 'pi pi-inbox',
-    children: [
-      {
-        label: 'first1',
-        key: '0-0',
-        icon: 'pi pi-file',
-      },
-    ],
-  },
-  {
-    label: 'first',
-    key: '0',
-    icon: 'pi pi-inbox',
-    children: [
-      {
-        label: 'first1',
-        key: '0-0',
-        icon: 'pi pi-file',
-      },
-    ],
-  },
-  {
-    label: 'first',
-    key: '0',
-    icon: 'pi pi-inbox',
-    children: [
-      {
-        label: 'first1',
-        key: '0-0',
-        icon: 'pi pi-file',
-      },
-    ],
-  },
-  {
-    label: 'first',
-    key: '0',
-    icon: 'pi pi-inbox',
-    children: [
-      {
-        label: 'first1',
-        key: '0-0',
-        icon: 'pi pi-file',
-      },
-    ],
+    children: workspaces.value.map((workspace, index) => ({
+      label: workspace.name,
+      key: `0-${index}`,
+      icon: 'pi pi-file',
+    })),
   },
 ]);
-const selectedKey = ref({});
-const toast = useToast();
 
+// Выбор узла дерева
 const onNodeSelect = (node: TreeNode) => {
   console.log(node);
-  toast.add({ severity: 'success', summary: 'Node Selected', detail: node.label, life: 3000 });
-};
-
-const onNodeUnselect = (node: TreeNode) => {
-  toast.add({ severity: 'warn', summary: 'Node Unselected', detail: node.label, life: 3000 });
-};
-
-const onNodeExpand = (node: TreeNode) => {
-  toast.add({ severity: 'info', summary: 'Node Expanded', detail: node.label, life: 3000 });
-};
-
-const onNodeCollapse = (node: TreeNode) => {
-  toast.add({ severity: 'info', summary: 'Node Collapsed', detail: node.label, life: 3000 });
+  toast.add({
+    severity: 'success',
+    summary: 'Пространство выбрано',
+    detail: node.label,
+    life: 3000,
+  });
 };
 </script>
+
 <style lang="scss" scoped>
 .card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
   .p-tree {
     border-radius: 10px;
+  }
+
+  .tree-scroll-container {
+    flex: 1;
+    overflow-y: auto;
+    height: 100%;
+    padding-right: 4px; // маленький отступ для скролла
+  }
+
+  .node-content {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap: 0.5rem;
   }
 }
 </style>

@@ -5,10 +5,13 @@ import ScrollPanel from 'primevue/scrollpanel';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { useRenderStore } from '@/stores';
 import { TypeModule } from '@/types/components';
+import { ref } from 'vue';
+import { useToast } from 'primevue/usetoast';
 
 const store = useRenderStore();
+const toast = useToast();
 
-const securityGroups: SecurityGroup[] = [
+const securityGroups = ref<SecurityGroup[]>([
   { name: 'SecurityGroup1', id: 'SG-001' },
   { name: 'SecurityGroup2', id: 'SG-002' },
   { name: 'SecurityGroup3', id: 'SG-003' },
@@ -19,7 +22,13 @@ const securityGroups: SecurityGroup[] = [
   { name: 'SecurityGroup8', id: 'SG-008' },
   { name: 'SecurityGroup9', id: 'SG-009' },
   { name: 'SecurityGroup10', id: 'SG-010' },
-];
+]);
+
+function remove(id: string) {
+  securityGroups.value = securityGroups.value.filter((securityGroup) => securityGroup.name !== id);
+  toast.add({ severity: 'error', summary: `Удален`, detail: id, life: 3000 });
+}
+
 function action() {
   if (store.modules[0]) {
     store.modules[0].type = TypeModule.AddSecurityGroup;
@@ -40,7 +49,7 @@ function action() {
       },
     }"
   >
-    <TableComponent :security-goups="securityGroups"></TableComponent>
+    <TableComponent :security-goups="securityGroups" :functions="[remove]"></TableComponent>
   </ScrollPanel>
 </template>
 <style scoped>

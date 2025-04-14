@@ -1,19 +1,30 @@
 <template>
-    <div class="modal-header">
-    <h1>Создание нового кластера</h1>
+  <div class="modal-header">
+    <h1>Создание нового Security Group</h1>
   </div>
   <div>
     <form @submit.prevent="createSecurityGroup" class="security-group-creator">
       <div class="form-group">
         <label for="name">Название группы</label>
-        <InputText id="name" v-model="value" aria-describedby="name-help" required/>
+        <InputText id="name" v-model="value" aria-describedby="name-help" required />
 
         <label for="CIDR">CIDR входящего потока</label>
-        <InputText id="CIDR" v-model="cidr" aria-describedby="CIDR-help" required/>
-        <Button icon="pi pi-plus" aria-label="Filter" />
+        <InputText id="CIDR" v-model="cidr" aria-describedby="CIDR-help" required />
+        <Button icon="pi pi-plus" aria-label="Filter" :onclick="addCDIR" />
       </div>
       <div class="form-group">
-        <button type="submit">Создать группу</button>
+        <ScrollPanel
+          style="width: 100%; height: 200px"
+          class="table"
+          :dt="{
+            bar: {
+              background: '{primary.color}',
+            },
+          }"
+        >
+          <TableComponent :clusters="clusters"></TableComponent>
+        </ScrollPanel>
+        <Button type="submit" :onclick="check">Создать</Button>
       </div>
     </form>
   </div>
@@ -23,6 +34,11 @@
 import { ref } from 'vue';
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
+import type { Cluster } from '@/types/entities';
+import TableComponent from '../TableComponent.vue';
+import ScrollPanel from 'primevue/scrollpanel';
+import { useToast } from 'primevue/usetoast';
+const toast = useToast();
 
 const value = ref(null);
 const cidr = ref(null);
@@ -31,11 +47,37 @@ const groupName = ref('');
 const description = ref('');
 const vpcId = ref('');
 const securityGroupId = ref<string | null>(null);
-
+const form = ref({
+  database: '',
+  owner: '',
+  lcCollate: '',
+  lcCtype: '',
+});
+const clusters: Cluster[] = Array.from({ length: 15 }, (_, index) => ({
+  name: `CIDR ${index + 1}`,
+}));
 // Для хранения правил Ingress (входящий) и Egress (исходящий) трафика
 const ingressRule = ref({ protocol: 'tcp', port: 80, cidr: '0.0.0.0/0' });
 const egressRule = ref({ protocol: 'tcp', port: 443, cidr: '0.0.0.0/0' });
 const successMessage = ref<string | null>(null);
+
+function addCDIR() {
+  toast.add({
+    severity: 'success',
+    summary: `CIDR добавлен`,
+    detail: 'CIDR15',
+    life: 3000,
+  });
+}
+
+function check() {
+  toast.add({
+    severity: 'success',
+    summary: `Security groups добавлен`,
+    detail: value,
+    life: 3000,
+  });
+}
 
 // Функция создания Security Group
 async function createSecurityGroup() {
@@ -98,6 +140,7 @@ async function addEgressRule() {
   flex-direction: row;
   flex-wrap: wrap; /* Позволяет переносить элементы на следующую строку */
   gap: 20px;
+  margin-top: 15px;
   .form-group {
     flex: 1 1 calc(50% - 20px); /* Элемент занимает 50% ширины контейнера с учётом отступов */
     min-width: 200px; /* Минимальная ширина */
@@ -122,15 +165,16 @@ button {
 
 button {
   margin-top: 1rem;
-  background-color: #4caf50;
+  width: 10%;
+  /* background-color: #4caf50;
   border: none;
   color: white;
-  cursor: pointer;
+  cursor: pointer; */
 }
 
-button:hover {
+/* button:hover {
   background-color: #45a049;
-}
+} */
 
 .success-message {
   margin-top: 1rem;

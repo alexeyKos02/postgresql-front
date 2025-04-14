@@ -9,6 +9,7 @@ const props = defineProps<{
   users?: User[];
   clusters?: Cluster[];
   securityGoups?: SecurityGroup[];
+  functions?: ((id: string) => void)[];
 }>();
 const store = useRenderStore();
 function openInfo() {
@@ -22,20 +23,53 @@ function openInfo() {
     <div v-for="cluster in props.clusters" :key="cluster.name" class="item" @click="openInfo">
       <span>{{ cluster.name }}</span>
       <div class="btns-pannel">
-        <button class="btn-restart"><FontAwesomeIcon icon="fa-solid fa-rotate-right" /></button>
-        <button class="btn-stop"><FontAwesomeIcon icon="fa-solid fa-pause" /></button>
-        <button class="btn-delete"><FontAwesomeIcon icon="fa-solid fa-trash" /></button>
+        <button
+          class="btn-restart"
+          :onclick="() => props.functions && props.functions[0] && props.functions[0](cluster.name)"
+        >
+          <FontAwesomeIcon icon="fa-solid fa-rotate-right" />
+        </button>
+        <button
+          class="btn-stop"
+          :onclick="() => props.functions && props.functions[1] && props.functions[1](cluster.name)"
+        >
+          <FontAwesomeIcon icon="fa-solid fa-pause" />
+        </button>
+        <button
+          class="btn-delete"
+          :onclick="() => props.functions && props.functions[2] && props.functions[2](cluster.name)"
+        >
+          <FontAwesomeIcon icon="fa-solid fa-trash" />
+        </button>
         <button class="btn-edit"><FontAwesomeIcon icon="fa-solid fa-pen" /></button>
       </div>
     </div>
     <div v-for="user in props.users" :key="user.email" class="item" @click="openInfo">
       <span>{{ user.email }}</span>
-      <Tag severity="info" value="ADMIN" rounded v-if="user.role === UserRole.ADMIN"></Tag>
-      <Tag severity="info" value="EDITOR" rounded v-if="user.role === UserRole.EDITOR"></Tag>
-      <Tag severity="info" value="VIEWER" rounded v-if="user.role === UserRole.VIEWER"></Tag>
+      <div style="display: flex; align-items: center; gap: 6px">
+        <div>
+          <Tag severity="info" value="ADMIN" rounded v-if="user.role === UserRole.ADMIN"></Tag>
+          <Tag severity="info" value="EDITOR" rounded v-if="user.role === UserRole.EDITOR"></Tag>
+          <Tag severity="info" value="VIEWER" rounded v-if="user.role === UserRole.VIEWER"></Tag>
+        </div>
+        <button class="btn-delete">
+          <FontAwesomeIcon
+            icon="fa-solid fa-trash"
+            :onclick="() => props.functions && props.functions[0] && props.functions[0](user.email)"
+          />
+        </button>
+      </div>
     </div>
     <div v-for="group in props.securityGoups" :key="group.id" class="item" @click="openInfo">
       <span>{{ group.name }}</span>
+      <div style="flex: 0">
+        <button
+          class="btn-delete"
+          :onclick="() => props.functions && props.functions[0] && props.functions[0](group.name)"
+        >
+          <FontAwesomeIcon icon="fa-solid fa-trash" />
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -73,6 +107,9 @@ button {
   font-size: 14px;
   background-color: #fff;
   transition: all 0.2s linear;
+}
+.role-space {
+  margin-right: 3px;
 }
 .btn-restart {
   border-color: #4caf50;

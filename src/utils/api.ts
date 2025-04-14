@@ -1,13 +1,58 @@
-import type { BackupScheduleRequest, CreateBackupRequest, CreateClusterConfigurationRequest, CreateClusterDto, CreateDatabaseRequest, CreateOrUpdateSecurityGroupDto, CreateWorkspaceDto, InviteUserDto, LoginDto, LoginResponseDto, RecoveryFromBackupRequest, ResponseBackup, ResponseCluster, ResponseClusters, ResponseDatabase, ResponseDatabases, ResponseInvite, ResponseSecurityGroup, ResponseSecurityGroups, ResponseUsers, ResponseWorkspace, ResponseWorkspaces, SignupDto } from '@/types/api';
+import type {
+  BackupScheduleRequest,
+  CreateBackupRequest,
+  CreateClusterConfigurationRequest,
+  CreateClusterDto,
+  CreateDatabaseRequest,
+  CreateDatabaseUserRequest,
+  CreateOrUpdateSecurityGroupDto,
+  CreateWorkspaceDto,
+  InviteUserDto,
+  LoginDto,
+  LoginResponseDto,
+  RecoveryFromBackupRequest,
+  ResponseBackup,
+  ResponseCluster,
+  ResponseClusters,
+  ResponseDatabase,
+  ResponseDatabases,
+  ResponseInvite,
+  ResponseSecurityGroup,
+  ResponseSecurityGroups,
+  ResponseUsers,
+  ResponseWorkspace,
+  ResponseWorkspaces,
+  SignupDto,
+} from '@/types/api';
 import axios from 'axios';
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 
-
 type RequestParams = Record<string, unknown>;
 type RequestBody = Record<string, unknown>;
+const apiClient: AxiosInstance = axios.create({
+  baseURL: 'http://api.pgaas.ru', // Устанавливаем базовый URL
+});
 
+apiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  // Проверяем наличие токена и путь
+  if (
+    token &&
+    config.url &&
+    !config.url.includes('/auth/login') &&
+    !config.url.includes('/auth/signup')
+  ) {
+    // В axios v1+ config.headers может быть либо undefined, либо AxiosHeaders
+    if (!config.headers) {
+      config.headers = new axios.AxiosHeaders();
+    }
 
-const apiClient: AxiosInstance = axios.create();
+    // Устанавливаем токен
+    config.headers.set('Authorization', `Bearer ${token}`);
+  }
+
+  return config;
+});
 const request = async <T>(
   method: 'get' | 'post' | 'delete',
   url: string,
@@ -25,9 +70,8 @@ const request = async <T>(
   return response;
 };
 
-
 // Login
-export const login = async (loginData: LoginDto): Promise<LoginResponseDto> => {
+export const loginRequest = async (loginData: LoginDto): Promise<LoginResponseDto> => {
   const response = await request<LoginResponseDto>(
     'post',
     '/auth/login',
@@ -38,7 +82,7 @@ export const login = async (loginData: LoginDto): Promise<LoginResponseDto> => {
 };
 
 // Signup
-export const signup = async (signupData: SignupDto): Promise<LoginResponseDto> => {
+export const signupRequest = async (signupData: SignupDto): Promise<LoginResponseDto> => {
   const response = await request<LoginResponseDto>(
     'post',
     '/auth/signup',
@@ -121,10 +165,7 @@ export const createCluster = async (
 
 // Get Clusters
 export const getClusters = async (workspaceId: number): Promise<ResponseClusters> => {
-  const response = await request<ResponseClusters>(
-    'get',
-    `/workspace/${workspaceId}/cluster`,
-  );
+  const response = await request<ResponseClusters>('get', `/workspace/${workspaceId}/cluster`);
   return response.data;
 };
 
@@ -152,6 +193,14 @@ export const getCluster = async (
   return response.data;
 };
 
+// Delete Cluster
+export const deleteCluster = async (workspaceId: number, id: number): Promise<ResponseDatabase> => {
+  const response = await request<ResponseDatabase>(
+    'delete',
+    `/workspace/${workspaceId}/cluster/${id}`,
+  );
+  return response.data;
+};
 // Create Database
 export const createDatabase = async (
   workspaceId: number,
@@ -196,7 +245,7 @@ export const deleteDatabase = async (
 export const createDatabaseUser = async (
   workspaceId: number,
   clusterId: number,
-  databaseData: CreateDatabaseRequest,
+  databaseData: CreateDatabaseUserRequest,
 ): Promise<ResponseDatabase> => {
   const response = await request<ResponseDatabase>(
     'post',
@@ -283,7 +332,6 @@ export const getClusterConfigurationReadiness = async (
   return response.data;
 };
 
-
 // Create Security Group
 export const createSecurityGroup = async (
   workspaceId: number,
@@ -300,10 +348,7 @@ export const createSecurityGroup = async (
 
 // Get Security Groups
 export const getSecurityGroups = async (workspaceId: number): Promise<ResponseSecurityGroups> => {
-  const response = await request<ResponseSecurityGroups>(
-    'get',
-    `/workspace/${workspaceId}/sg`,
-  );
+  const response = await request<ResponseSecurityGroups>('get', `/workspace/${workspaceId}/sg`);
   return response.data;
 };
 
@@ -340,10 +385,7 @@ export const getWorkspaces = async (): Promise<ResponseWorkspaces> => {
 
 // Get Workspace
 export const getWorkspace = async (workspaceId: number): Promise<ResponseWorkspace> => {
-  const response = await request<ResponseWorkspace>(
-    'get',
-    `/workspaces/${workspaceId}`,
-  );
+  const response = await request<ResponseWorkspace>('get', `/workspaces/${workspaceId}`);
   return response.data;
 };
 
@@ -363,9 +405,6 @@ export const inviteUserToWorkspace = async (
 
 // Get Workspace Users
 export const getWorkspaceUsers = async (workspaceId: number): Promise<ResponseUsers> => {
-  const response = await request<ResponseUsers>(
-    'get',
-    `/workspaces/${workspaceId}/users`,
-  );
+  const response = await request<ResponseUsers>('get', `/workspaces/${workspaceId}/users`);
   return response.data;
 };

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import FileTree from '@/components/FileTree.vue';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import Splitter from 'primevue/splitter';
 import SplitterPanel from 'primevue/splitterpanel';
 import { useRenderStore } from '@/stores';
@@ -13,7 +13,7 @@ const store = useRenderStore();
 
 // const fullView = ref<boolean>(false);
 
-const fullView = ref<boolean>(store.modules[0]?.isActive ?? false);
+const fullView = computed(() => store.modules[0]?.isActive ?? false);
 
 const dividedModules = ref<Module[]>(store.modules);
 const close = ref<boolean>(true);
@@ -38,14 +38,16 @@ function chahgeView() {
       <FileTree v-if="!close || fullView" />
     </div>
     <div class="main-component" :class="{ 'main-component--full': fullView }">
-      <div v-if="!fullView">
+      <div v-if="!fullView" class="divide">
         <Splitter style="height: 90vh">
           <SplitterPanel class="flex items-center justify-center" :size="50" :minSize="10">
             <Splitter layout="vertical">
               <SplitterPanel class="flex items-center justify-center" :size="50">
                 <FillModule :module="dividedModules[1]" />
               </SplitterPanel>
-              <SplitterPanel :size="50"> <FillModule :module="dividedModules[4]" /> </SplitterPanel>
+              <SplitterPanel :size="50">
+                <!-- <FillModule :module="dividedModules[4]" />  -->
+              </SplitterPanel>
             </Splitter>
           </SplitterPanel>
           <SplitterPanel class="flex items-center justify-center" :size="50" :minSize="10">
@@ -53,7 +55,9 @@ function chahgeView() {
               <SplitterPanel class="flex items-center justify-center" :size="50">
                 <FillModule :module="dividedModules[2]" />
               </SplitterPanel>
-              <SplitterPanel :size="50"> <FillModule :module="dividedModules[3]" /></SplitterPanel>
+              <SplitterPanel :size="50">
+                <!-- <FillModule :module="dividedModules[3]" /> -->
+              </SplitterPanel>
             </Splitter>
           </SplitterPanel>
         </Splitter>
@@ -90,11 +94,11 @@ function chahgeView() {
   width: calc(2rem + 2px);
   &--open {
     width: 15%;
-    height: 100%;
+    height: 95%;
   }
   &--full {
     width: 20%;
-    height: 100%;
+    height: 95%;
     margin-left: 0;
     z-index: 0;
   }
@@ -126,6 +130,18 @@ function chahgeView() {
 .v-enter-from,
 .v-leave-to {
   opacity: 0;
+}
+.divide {
+  display: flex;
+  flex-direction: column;
+  overflow: scroll;
+  width: 100%;
+  height: 100%;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Добавляет тень */
+  height: 95%;
+  width: 100%;
+  margin-left: 1vw;
+  border-radius: 10px;
 }
 // .element {
 //   flex: 1; /* Элементы растягиваются одинаково */

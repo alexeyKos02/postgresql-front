@@ -44,7 +44,6 @@ export interface CreateClusterConfigurationRequest {
   additionalProp3: string;
 }
 
-
 export interface CreateDatabaseUserRequest {
   username: string;
   password: string;
@@ -164,5 +163,6 @@ export interface SecurityGroupData {
 }
 
 export interface WorkspaceData {
-  // Данные о рабочем пространстве
+  	id: number;
+		name: string;
 }

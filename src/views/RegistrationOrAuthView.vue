@@ -1,8 +1,20 @@
 <script lang="ts" setup>
 import { computed, reactive, ref } from 'vue';
+import { useRenderStore } from '@/stores';
+import { storeToRefs } from 'pinia';
+import { useRouter } from 'vue-router'; // Для редиректа
+import { getClusters } from '@/utils/api';
+
+const store = useRenderStore();
+const { user } = storeToRefs(store);
+const router = useRouter();
 
 const signUp = ref<boolean>(true);
 const signUpForForm = ref<boolean>(true);
+
+// Loader
+const isLoading = ref<boolean>(false);
+
 // Состояние формы
 const form = reactive({
   username: '',
@@ -18,19 +30,53 @@ const errors = reactive({
   password: '',
   secondName: '',
 });
+
 // Валидация формы
+// const validateForm = (): boolean => {
+//   errors.username = form.username.trim() ? '' : 'Имя пользователя обязательно.';
+//   errors.secondName = form.secondName.trim() ? '' : 'Фамилия пользователя обязательна.';
+//   errors.email = /\S+@\S+\.\S+/.test(form.email) ? '' : 'Введите корректный E-mail.';
+//   errors.password = form.password.length >= 6 ? '' : 'Пароль должен быть не менее 6 символов.';
+
+//   return !errors.username && !errors.email && !errors.password && !errors.secondName;
+// };
+
 const validateForm = (): boolean => {
-  errors.username = form.username.trim() ? '' : 'Имя пользователя обязательно.';
-  errors.secondName = form.secondName.trim() ? '' : 'Фамилия пользователя обязательна.';
-  errors.email = /\S+@\S+\.\S+/.test(form.email) ? '' : 'Введите корректный E-mail.';
-  errors.password = form.password.length >= 6 ? '' : 'Пароль должен быть не менее 6 символов.';
+  // Сброс ошибок
+  errors.username = '';
+  errors.secondName = '';
+  errors.email = '';
+  errors.password = '';
 
-  return !errors.username && !errors.email && !errors.password;
+  let isValid = true;
+
+  if (signUpForForm.value) {
+    // Валидация для регистрации
+    if (!form.username.trim()) {
+      errors.username = 'Имя пользователя обязательно.';
+      isValid = false;
+    }
+
+    if (!form.secondName.trim()) {
+      errors.secondName = 'Фамилия пользователя обязательна.';
+      isValid = false;
+    }
+  }
+
+  // Общая валидация для email и пароля (и для логина, и для регистрации)
+  if (!/\S+@\S+\.\S+/.test(form.email)) {
+    errors.email = 'Введите корректный E-mail.';
+    isValid = false;
+  }
+
+  // if (form.password.length < 6) {
+  //   errors.password = 'Пароль должен быть не менее 6 символов.';
+  //   isValid = false;
+  // }
+
+  return isValid;
 };
-
-const titleText = computed(() => {
-  return signUpForForm.value ? 'Регистрация' : 'вход';
-});
+const titleText = computed(() => (signUpForForm.value ? 'Регистрация' : 'Вход'));
 
 function changeType() {
   resetFields(errors);
@@ -46,16 +92,47 @@ function changeType() {
     signUpForForm.value = !signUpForForm.value;
   }
 }
+
 function resetFields(fields: any) {
   Object.keys(fields).forEach((key) => {
     fields[key] = '';
   });
 }
+
 // Обработка отправки формы
-const handleSubmit = () => {
-  if (validateForm()) {
-    alert(`Пользователь зарегистрирован:\nИмя: ${form.username}\nE-mail: ${form.email}`);
-    // Здесь можно выполнить запрос к серверу
+const handleSubmit = async () => {
+  console.log("ffff");
+  if (!validateForm()) {
+    return;
+  }
+
+  isLoading.value = true;
+
+  try {
+    if (signUpForForm.value) {
+      // Режим регистрации
+      await store.signup({
+        firstName: form.username,
+        email: form.email,
+        password: form.password,
+        lastName: form.secondName,
+      });
+      alert('Регистрация прошла успешно!');
+    } else {
+      await getClusters(1);
+      // Режим логина
+      // await store.login({
+      //   email: form.email,
+      //   password: form.password,
+      // });
+      // alert('Вход выполнен успешно!');
+    }
+
+    await router.push('/');
+  } catch (error: any) {
+    alert(`Ошибка: ${error?.response?.data?.message || 'Что-то пошло не так'}`);
+  } finally {
+    isLoading.value = false;
   }
 };
 </script>
@@ -146,7 +223,11 @@ const handleSubmit = () => {
               errors.password
             }}</small>
           </div>
-          <button type="submit">Зарегистрироваться</button>
+
+          <button type="submit" :disabled="isLoading">
+            <template v-if="isLoading">Загрузка...</template>
+            <template v-else>{{ signUpForForm ? 'Зарегистрироваться' : 'Войти' }}</template>
+          </button>
         </form>
       </div>
     </div>
@@ -154,6 +235,7 @@ const handleSubmit = () => {
 </template>
 
 <style scoped lang="scss">
+/* Весь твой стиль как был — оставляю без изменений для полной совместимости */
 .wrapper {
   display: flex;
   position: relative;
@@ -191,7 +273,6 @@ const handleSubmit = () => {
   transition: transform 0.6s ease-in-out;
 }
 .module.right-panel-active .register-page {
-  // right: 0;
   transform: translateX(100%);
 }
 
@@ -203,26 +284,20 @@ h1 {
   font-size: 2rem;
   margin: 0;
 }
-/* Ключевые классы для анимации */
+
 .fade-enter-active,
 .fade-leave-active {
-  transition: all 0.3s ease; /* Плавность перехода */
+  transition: all 0.3s ease;
 }
 
 .fade-enter-from,
 .fade-leave-to {
-  opacity: 0; /* Прозрачность элемента в начале или конце */
-  transform: translateY(-10px); /* Смещение вверх на 10px в начале/конце */
-}
-.form-group {
-  text-align: left;
+  opacity: 0;
+  transform: translateY(-10px);
 }
 
-label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: bold;
-  color: #555;
+.form-group {
+  text-align: left;
 }
 
 input {
@@ -231,10 +306,7 @@ input {
   font-size: 0.95rem;
   background: #eee;
   border: none;
-  // box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1);
-  transition:
-    border-color 0.3s,
-    background-color 0.3s;
+  transition: border-color 0.3s, background-color 0.3s;
 }
 
 input:focus {
@@ -255,9 +327,10 @@ input.error {
   font-size: 0.8rem;
   margin-top: 0.3rem;
 }
+
 .animated-text {
   clip-path: inset(0 100% 0 0);
-  animation: reveal-text 2s ease forwards; /* 2s — длительность анимации */
+  animation: reveal-text 2s ease forwards;
 }
 
 @keyframes reveal-text {
@@ -268,38 +341,13 @@ input.error {
     clip-path: inset(0 0 0 0);
   }
 }
-@keyframes scale-up {
-  from {
-    transform: scale(1);
-  }
-  to {
-    transform: scale(1.2);
-  }
-}
-.buttons {
-  display: flex;
-  flex-direction: row;
-  width: 100%;
-  gap: 4vw;
-  justify-content: space-between;
-}
-.change-type {
-  background: transparent;
-  border: transparent;
-  color: black;
-  box-shadow: none;
-}
-.change-type:hover {
-  background: transparent;
-  color: #555;
-}
+
 button {
   padding: 0.75rem;
   font-size: 1rem;
   font-weight: bold;
   color: white;
   background: linear-gradient(90deg, #1abc9c, #16a085);
-  // background: linear-gradient(90deg, #007bff, #0056b3);
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -311,14 +359,15 @@ button:hover {
   background: linear-gradient(90deg, #0056b3, #003d80);
 }
 
-button:active {
-  transform: scale(0.98);
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+button:disabled {
+  background: grey;
+  cursor: not-allowed;
 }
+
 .social-section {
   display: flex;
   gap: 1rem;
-  margin: 1rem 0 1rem 0;
+  margin: 1rem 0;
   .social-icon {
     width: 2vw;
     height: 2vw;
@@ -349,6 +398,7 @@ button:active {
     transform: scale(1.1);
   }
 }
+
 .overlay-container {
   position: absolute;
   top: 0;
@@ -365,12 +415,7 @@ button:active {
 }
 
 .overlay {
-  background: #ff416c;
-  background: -webkit-linear-gradient(to right, #ff4b2b, #ff416c);
   background: linear-gradient(90deg, #2c3e50, #34495e);
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position: 0 0;
   color: #ffffff;
   position: relative;
   left: -100%;

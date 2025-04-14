@@ -45,7 +45,7 @@ const closeModal = () => {
 
 <template>
   <div class="modal-header">
-    <h1>Название</h1>
+    <h1>Пространство 1</h1>
   </div>
   <ButtonsComponent :buttons="buttons"></ButtonsComponent>
   <div class="main-content">
