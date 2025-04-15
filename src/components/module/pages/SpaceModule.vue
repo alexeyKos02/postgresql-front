@@ -50,7 +50,7 @@ const buttons = reactive([
   </div>
   <ButtonsComponent :buttons="buttons"></ButtonsComponent>
   <div class="main-content">
-    <UsersComponents v-if="module.spacePage === SpacePage.Users" />
+    <UsersComponents v-if="module.spacePage === SpacePage.Users"  :workspace-id="workspace?.id"/>
     <ClustersComponent
       :workspace-id="workspace?.id"
       :module-id="module.location"

@@ -31,7 +31,7 @@ const workSpace = computed(() => store.workspaces[0]);
   </transition>
   <transition name="fade">
     <ModuleComponent v-if="module?.type === TypeModule.AddUser" class="add-user-module">
-      <AddUserPage class="add-user" />
+      <AddUserPage class="add-user" :workspace-id="workSpace.id" />
     </ModuleComponent>
   </transition>
   <transition name="fade">

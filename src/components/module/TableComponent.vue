@@ -27,9 +27,9 @@ function openInfo() {
     <div v-for="user in props.users" :key="user.email" class="item" @click="openInfo">
       <div class="info">
         <span>{{ user.email }}</span>
-        <Tag severity="info" value="ADMIN" rounded v-if="user.role === UserRole.ADMIN" class="tag" />
-        <Tag severity="info" value="EDITOR" rounded v-if="user.role === UserRole.EDITOR" class="tag" />
-        <Tag severity="info" value="VIEWER" rounded v-if="user.role === UserRole.VIEWER" class="tag" />
+        <Tag severity="info" value="ADMIN" rounded v-if="user.role === 2" class="tag" />
+        <Tag severity="info" value="EDITOR" rounded v-if="user.role === 1" class="tag" />
+        <Tag severity="info" value="VIEWER" rounded v-if="user.role === 0" class="tag" />
       </div>
       <button class="btn-icon" @click.stop="props.functions?.[0]?.(user.email)">
         <FontAwesomeIcon icon="fa-solid fa-trash" />

@@ -142,7 +142,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import InputText from 'primevue/inputtext';
 import Slider from 'primevue/slider';
 import Select from 'primevue/select';
@@ -150,11 +150,17 @@ import Button from 'primevue/button';
 import { useToast } from 'primevue/usetoast';
 import { useRenderStore } from '@/stores';
 import type { CreateClusterDto } from '@/types/api';
-import { checkClusterNameExists } from '@/utils/api';
+import { checkClusterNameExists, getSecurityGroups } from '@/utils/api';
 
 const props = defineProps<{
   workspaceId: number;
 }>();
+
+// ✅ Локальное объявление Option
+type Option = {
+  label: string;
+  value: string | number;
+};
 
 const store = useRenderStore();
 const toast = useToast();
@@ -178,7 +184,6 @@ const form = ref({
   backupScheduleCronExpression: '',
   backupMethod: null,
 });
-
 const versions = [
   { label: '13', value: 13 },
   { label: '14', value: 14 },
@@ -187,15 +192,10 @@ const versions = [
 
 const poolerModes = ['session', 'transaction', 'statement'];
 
-const securityGroups = [
-  { label: 'Security Group 1', value: 1 },
-  { label: 'Security Group 2', value: 2 },
-  { label: 'Security Group 3', value: 3 },
-];
+const securityGroups = ref<Option[]>([]);
 
 const backupMethods = ['volumeSnapshot', 'barmanObjectStore'];
 
-// ✅ Проверка systemName
 const systemNameLoading = ref(false);
 const systemNameExists = ref(false);
 
@@ -231,7 +231,6 @@ async function validateSystemName() {
   }
 }
 
-// Валидация cron
 function isValidCron(cron: string): boolean {
   const parts = cron.trim().split(/\s+/);
   if (parts.length !== 5) return false;
@@ -251,10 +250,8 @@ function isValidCron(cron: string): boolean {
 
 function validateCronField(field: string, min: number, max: number): boolean {
   const patterns = [/^\*$/, /^[0-9]+$/, /^[0-9]+-[0-9]+$/, /^\*\/[0-9]+$/, /^[0-9]+(,[0-9]+)+$/];
-
   const isValidPattern = patterns.some((pattern) => pattern.test(field));
   if (!isValidPattern) return false;
-
   const extractNumbers = (field: string) => {
     const numbers: number[] = [];
     field.split(/,|-/).forEach((part) => {
@@ -265,7 +262,6 @@ function validateCronField(field: string, min: number, max: number): boolean {
     if (stepMatch) numbers.push(parseInt(stepMatch[1], 10));
     return numbers;
   };
-
   const numbers = extractNumbers(field);
   return numbers.every((num) => num >= min && num <= max);
 }
@@ -283,8 +279,10 @@ function validateCron() {
   }
 }
 
-// Подготовка данных кластера
 function prepareClusterData(): CreateClusterDto {
+  const cron = form.value.backupScheduleCronExpression.trim();
+  const fullCron = cron.startsWith('0 ') ? cron : `0 ${cron}`;
+
   return {
     systemName: form.value.systemName || '',
     storageSize: form.value.storageSize,
@@ -301,12 +299,11 @@ function prepareClusterData(): CreateClusterDto {
     poolerMaxConnections: form.value.poolerMaxConnections,
     poolerDefaultPoolSize: form.value.poolerDefaultPoolSize,
     securityGroupId: form.value.securityGroupId || 1,
-    backupScheduleCronExpression: form.value.backupScheduleCronExpression || '',
+    backupScheduleCronExpression: fullCron,
     backupMethod: form.value.backupMethod || 'pg_dump',
   };
 }
 
-// Submit
 async function submitForm() {
   if (systemNameExists.value) {
     toast.add({
@@ -354,6 +351,20 @@ async function submitForm() {
     });
   }
 }
+
+onMounted(async () => {
+  try {
+    const groups = await getSecurityGroups(props.workspaceId);
+    securityGroups.value = groups.map((group) => ({ label: group.name, value: group.id }));
+  } catch (error) {
+    toast.add({
+      severity: 'warn',
+      summary: 'Ошибка загрузки групп безопасности',
+      detail: 'Выбор ограничен предустановленными значениями',
+      life: 4000,
+    });
+  }
+});
 </script>
 
 <style scoped lang="scss">

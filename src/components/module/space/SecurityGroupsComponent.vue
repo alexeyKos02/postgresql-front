@@ -5,9 +5,9 @@ import ScrollPanel from 'primevue/scrollpanel';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { useRenderStore } from '@/stores';
 import { TypeModule } from '@/types/components';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useToast } from 'primevue/usetoast';
-import { getSecurityGroups } from '@/utils/api'; // ✅ Используем готовую функцию
+import { getSecurityGroups, deleteSecurityGroup } from '@/utils/api';
 
 const props = defineProps<{
   workspaceId: number;
@@ -20,30 +20,14 @@ const toast = useToast();
 const securityGroups = ref<SecurityGroup[]>([]);
 const loading = ref(true);
 
-// 🧩 Моковые данные для разработки
-const mockSecurityGroups: SecurityGroup[] = [
-  { name: 'Mock Group 1', id: 101 },
-  { name: 'Mock Group 2', id: 102 },
-  { name: 'Mock Group 3', id: 103 },
-  { name: 'Mock Group 4', id: 104 },
-  { name: 'Mock Group 5', id: 105 },
-];
-
-// ✅ Просто вызываем готовую функцию
-async function fetchSecurityGroups() {
+async function fetchSecurityGroups(workspaceId: number) {
   try {
     loading.value = true;
-    const response = await getSecurityGroups(props.workspaceId);
-    securityGroups.value = mockSecurityGroups;
-    // if (response.length === 0) {
-    //   // Если с бэка пусто — используем моковые данные
-    //   securityGroups.value = mockSecurityGroups;
-    // } else {
-    //   securityGroups.value = response.map((item) => ({
-    //     name: item.name,
-    //     id: item.id,
-    //   }));
-    // }
+    const response = await getSecurityGroups(workspaceId);
+    securityGroups.value = response.map((item) => ({
+      name: item.name,
+      id: item.id,
+    }));
   } catch (error: any) {
     toast.add({
       severity: 'error',
@@ -51,26 +35,34 @@ async function fetchSecurityGroups() {
       detail: error.message || 'Не удалось загрузить список',
       life: 4000,
     });
-
-    // Если ошибка, тоже подставим моковые данные для разработки
-    securityGroups.value = mockSecurityGroups;
+    securityGroups.value = [];
   } finally {
     loading.value = false;
   }
 }
 
-function remove(id: string) {
+async function remove(id: string) {
   const numericId = Number(id);
-  securityGroups.value = securityGroups.value.filter(
-    (securityGroup) => securityGroup.id !== numericId
-  );
 
-  toast.add({
-    severity: 'info',
-    summary: 'Удален',
-    detail: `Security Group: ${id}`,
-    life: 3000,
-  });
+  try {
+    await deleteSecurityGroup(props.workspaceId, numericId);
+    securityGroups.value = securityGroups.value.filter(
+      (group) => group.id !== numericId
+    );
+    toast.add({
+      severity: 'success',
+      summary: 'Security Group удалена',
+      detail: `ID: ${id}`,
+      life: 3000,
+    });
+  } catch (error: any) {
+    toast.add({
+      severity: 'error',
+      summary: 'Ошибка удаления',
+      detail: error.message || 'Не удалось удалить Security Group',
+      life: 4000,
+    });
+  }
 }
 
 function action() {
@@ -80,20 +72,43 @@ function action() {
   }
 }
 
-// ✅ Запрос данных при монтировании компонента
 onMounted(() => {
-  fetchSecurityGroups();
+  fetchSecurityGroups(props.workspaceId);
 });
+
+watch(
+  () => props.workspaceId,
+  (newId, oldId) => {
+    if (newId !== oldId) {
+      fetchSecurityGroups(newId);
+    }
+  }
+);
 </script>
+
 
 <template>
   <div>
     <div class="icon" @click="action">
       <FontAwesomeIcon icon="fa-solid fa-plus" />
     </div>
-    <ScrollPanel style="width: 100%; height: 200px" class="table">
+
+    <ScrollPanel class="table">
       <div v-if="loading" class="loading-text">Загрузка...</div>
-      <TableComponent v-else :security-goups="securityGroups" :functions="[remove]" />
+
+      <div v-else-if="securityGroups.length === 0" class="empty">
+        <FontAwesomeIcon icon="fa-solid fa-shield-halved" class="empty-icon" />
+        <div class="empty-message">
+          <p>Нет Security Groups</p>
+          <small>Нажмите <strong>+</strong>, чтобы создать</small>
+        </div>
+      </div>
+
+      <TableComponent
+        v-else
+        :security-goups="securityGroups"
+        :functions="[remove]"
+      />
     </ScrollPanel>
   </div>
 </template>
@@ -107,13 +122,37 @@ onMounted(() => {
 }
 
 .table {
-  flex: 1;
-  margin: 20px auto;
+  max-height: 220px;
+  border-radius: 6px;
+  overflow-y: auto;
+  background-color: #fafafa;
+  padding: 0 8px;
 }
 
 .loading-text {
   text-align: center;
-  padding: 20px;
-  color: #888;
+  padding: 16px;
+  font-size: 14px;
+  color: #999;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 16px;
+  color: #777;
+}
+
+.empty-icon {
+  font-size: 28px;
+  margin-bottom: 8px;
+  color: #ccc;
+}
+
+.empty-message {
+  text-align: center;
+  font-size: 14px;
 }
 </style>

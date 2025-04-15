@@ -3,28 +3,57 @@
     <div class="modal-header">
       <h1>Создание нового пользователя</h1>
     </div>
+
+    <!-- Информационная плашка -->
+    <div class="info-banner">
+      <FontAwesomeIcon icon="fa-solid fa-circle-info" class="info-icon" />
+      <p class="info-text">
+        Приглашение можно отправить только пользователю, зарегистрированному в системе.
+      </p>
+    </div>
+
+    <!-- Email + кнопка -->
     <div class="outer-card">
-      <div class="inner-card">
-        <FloatLabel variant="on">
-          <InputText id="email" v-model="email" autocomplete="off" class="full-width" />
+      <div class="input-group">
+        <FloatLabel>
+          <InputText
+            id="email"
+            v-model="email"
+            autocomplete="off"
+            class="full-width"
+            @blur="onEmailBlur"
+            :class="{ 'input-error': emailTouched && !isValidEmail(email) }"
+          />
           <label for="email">Email</label>
         </FloatLabel>
+
+        <div class="error-container">
+          <p class="error-msg" v-if="emailTouched && !isValidEmail(email)">
+            Введите корректный email
+          </p>
+        </div>
       </div>
-      <Button icon="pi pi-check" rounded aria-label="Filter" :onclick="check" />
+
+      <Button
+        icon="pi pi-check"
+        rounded
+        aria-label="Добавить"
+        class="check-btn"
+        @click="invite"
+      />
     </div>
+
+    <!-- Выбор роли -->
     <div class="radio-buttons--wrapper">
       <div class="radio-buttons">
-        <div class="radio-buttons--element">
-          <RadioButton v-model="ingredient" inputId="Admin" name="pizza" value="Cheese" />
-          <label for="Admin">Admin</label>
-        </div>
-        <div class="radio-buttons--element">
-          <RadioButton v-model="ingredient" inputId="Editor" name="pizza" value="Mushroom" />
-          <label for="Editor">Editor</label>
-        </div>
-        <div class="radio-buttons--element">
-          <RadioButton v-model="ingredient" inputId="Viewer" name="pizza" value="Pepper" />
-          <label for="Viewer">Viewer</label>
+        <div class="radio-buttons--element" v-for="r in roles" :key="r.value">
+          <RadioButton
+            v-model="role"
+            :inputId="r.value"
+            name="role"
+            :value="r.value"
+          />
+          <label :for="r.value">{{ r.label }}</label>
         </div>
       </div>
     </div>
@@ -36,44 +65,93 @@ import { ref } from 'vue';
 import RadioButton from 'primevue/radiobutton';
 import InputText from 'primevue/inputtext';
 import FloatLabel from 'primevue/floatlabel';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import Button from 'primevue/button';
-import { useRenderStore } from '@/stores';
-import { TypeModule } from '@/types/components';
 import { useToast } from 'primevue/usetoast';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { inviteUserToWorkspace } from '@/utils/api';
+import type { InviteUserDto } from '@/types/api';
+
+const props = defineProps<{ workspaceId: number }>();
 const toast = useToast();
 
-const store = useRenderStore();
 const email = ref('');
 const role = ref('');
-const ingredient = ref('');
+const emailTouched = ref(false);
 
-function check() {
-  toast.add({
-    severity: 'success',
-    summary: `Пользователь добавлен`,
-    detail: email,
-    life: 3000,
-  });
+const roles = [
+  { label: 'Admin', value: 'Admin' },
+  { label: 'Editor', value: 'Editor' },
+  { label: 'Viewer', value: 'Viewer' },
+];
+
+const roleMap: Record<string, number> = {
+  Viewer: 0,
+  Editor: 1,
+  Admin: 2,
+};
+
+function isValidEmail(value: string): boolean {
+  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return regex.test(value);
 }
 
-// const search = (event) => {
-//   items.value = [...Array(10).keys()].map((item) => event.query + '-' + item);
-// };
+function onEmailBlur() {
+  emailTouched.value = true;
+}
 
-// const backAction = () => {
-//   if (store.centerModule) {
-//     store.centerModule.type = TypeModule.Space;
-//   }
-// };
-// const closeModal = () => {
-//   if (store.centerModule) {
-//     store.centerModule.isActive = false;
-//   }
-// };
+async function invite() {
+  emailTouched.value = true;
+
+  if (!isValidEmail(email.value)) {
+    toast.add({
+      severity: 'warn',
+      summary: 'Неверный email',
+      detail: 'Пожалуйста, введите корректный email',
+      life: 3000,
+    });
+    return;
+  }
+
+  if (!role.value) {
+    toast.add({
+      severity: 'warn',
+      summary: 'Роль не выбрана',
+      detail: 'Пожалуйста, выберите роль',
+      life: 3000,
+    });
+    return;
+  }
+
+  try {
+    const inviteData: InviteUserDto = {
+      email: email.value,
+      role: roleMap[role.value],
+    };
+
+    await inviteUserToWorkspace(props.workspaceId, inviteData);
+
+    toast.add({
+      severity: 'success',
+      summary: 'Приглашение отправлено',
+      detail: `${email.value} (роль: ${role.value})`,
+      life: 3000,
+    });
+
+    email.value = '';
+    role.value = '';
+    emailTouched.value = false;
+  } catch (error: any) {
+    toast.add({
+      severity: 'error',
+      summary: 'Ошибка',
+      detail: error?.response?.data?.message || error?.message || 'Не удалось отправить приглашение',
+      life: 4000,
+    });
+  }
+}
 </script>
 
-<style lang="scss" scoped>
+<style scoped lang="scss">
 .modal-header {
   display: flex;
   justify-content: space-between;
@@ -81,54 +159,83 @@ function check() {
   border-bottom: 2px solid #f0f0f0;
   padding-bottom: 10px;
 }
-.outer-card {
+
+.info-banner {
   display: flex;
-  gap: 1rem;
-  width: 100%;
-  align-items: center;
-  margin-top: 3vh;
-  button {
-    height: 2vw;
-  } /* занимать всю ширину родительского элемента */
+  align-items: flex-start;
+  gap: 10px;
+  background-color: #f1f5f9;
+  border-left: 4px solid #3b82f6;
+  padding: 12px 16px;
+  border-radius: 6px;
+  margin-top: 16px;
+  color: #334155;
+  font-size: 14px;
 }
 
-.inner-card {
-  width: 100%; /* занимать всю ширину родительского элемента */
+.info-icon {
+  font-size: 16px;
+  color: #3b82f6;
+  margin-top: 2px;
+}
+
+.outer-card {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  align-items: flex-start;
+  margin-top: 3vh;
+}
+
+.input-group {
+  flex-grow: 1;
+  position: relative;
 }
 
 .full-width {
-  width: 100%; /* занимать всю ширину родительского элемента */
+  width: 100%;
 }
-.auto {
-  background-color: aqua;
-  input {
-    width: 100% !important;
-  }
+
+.input-error {
+  border-color: #e74c3c !important;
 }
+
+.error-container {
+  min-height: 20px;
+  margin-top: 4px;
+}
+
+.error-msg {
+  color: #e74c3c;
+  font-size: 12px;
+  margin: 0;
+}
+
+.check-btn {
+  height: 42px;
+  width: 42px;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .radio-buttons--wrapper {
   display: flex;
   justify-content: center;
-  margin-top: 1.5vh;
-  margin-right: 2vw;
+  margin-top: 2vh;
 }
+
 .radio-buttons {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 1.5rem;
+  justify-content: center;
 }
+
 .radio-buttons--element {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-}
-.control-panel {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
 }
 </style>

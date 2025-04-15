@@ -116,7 +116,30 @@ export interface ResponseSecurityGroup {
   value: SecurityGroupData;
 }
 
-export type ResponseClusters = { name: string }[];
+export type ResponseClusters = {
+  id: number;
+  status: number;
+  systemName: string;
+  securityGroupId: number;
+  workspaceId: number;
+  storageSize: number;
+  cpu: number;
+  memory: number;
+  majorVersion: number;
+  databaseName: string;
+  lcCollate: string;
+  lcCtype: string;
+  instances: number;
+  ownerName: string;
+  ownerPassword: string;
+  poolerMode: string;
+  poolerMaxConnections: number;
+  poolerDefaultPoolSize: number;
+  backupScheduleCronExpression: string;
+  backupMethod: string;
+  dataDurability: string | null;
+  syncReplicas: number | null;
+}[];
 
 export type ResponseSecurityGroups = SecurityGroupData[];
 
@@ -131,10 +154,11 @@ export interface WorkspaceData {
 
 export type ResponseWorkspaces = WorkspaceData[];
 
-export interface ResponseUsers {
-  api_version: string;
-  value: string;
-}
+export type ResponseUsers = Array<{
+  id: number;
+  email: string;
+  role: number;
+}>;
 
 export interface RequestBody {
   // Общий тип для тела запроса
@@ -145,8 +169,29 @@ export interface BackupData {
 }
 
 export interface ClusterData {
-  name: string;
+  id: number;
+  status: number;
+  systemName: string;
+  securityGroupId: number;
+  workspaceId: number;
+  storageSize: number;
+  cpu: number;
+  memory: number;
+  majorVersion: number;
+  databaseName: string;
+  lcCollate: string;
+  lcCtype: string;
+  instances: number;
+  ownerName: string;
+  backupMethod: string;
+  backupScheduleCronExpression: string;
+  poolerMode: string;
+  poolerMaxConnections: number;
+  poolerDefaultPoolSize: number;
+  dataDurability: string | null;
+  syncReplicas: number | null;
 }
+
 
 export interface DatabaseData {
   // Данные о базе данных
