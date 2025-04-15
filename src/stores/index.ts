@@ -161,8 +161,8 @@ export const useRenderStore = defineStore('render', {
     async fetchWorkspace(workspaceId: number) {
       try {
         const response = await getWorkspace(workspaceId);
-        console.log('Workspace загружен:', response.value);
-        return response.value;
+        console.log('Workspace загружен:', response);
+        return response;
       } catch (error) {
         console.error('Ошибка при получении workspace:', error);
         throw error;

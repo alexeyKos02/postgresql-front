@@ -124,15 +124,12 @@ export interface ResponseInvite {
   api_version: string;
   value: string;
 }
-export interface ResponseWorkspace {
-  api_version: string;
-  value: WorkspaceData;
+export interface WorkspaceData {
+  id: number;
+  name: string;
 }
 
-export interface ResponseWorkspaces {
-  api_version: string;
-  value: WorkspaceData[];
-}
+export type ResponseWorkspaces = WorkspaceData[];
 
 export interface ResponseUsers {
   api_version: string;
@@ -160,9 +157,4 @@ export interface SecurityGroupData {
   workspaceId: number;
   name: string;
   allowedIps: string[];
-}
-
-export interface WorkspaceData {
-  id: number;
-  name: string;
 }

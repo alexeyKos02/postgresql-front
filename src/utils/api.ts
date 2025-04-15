@@ -21,7 +21,7 @@ import type {
   ResponseSecurityGroup,
   ResponseSecurityGroups,
   ResponseUsers,
-  ResponseWorkspace,
+  WorkspaceData,
   ResponseWorkspaces,
   SignupDto,
 } from '@/types/api';
@@ -384,8 +384,8 @@ export const deleteSecurityGroup = async (
 
 export const createWorkspace = async (
   workspaceData: CreateWorkspaceDto,
-): Promise<ResponseWorkspace> => {
-  const response = await request<ResponseWorkspace>(
+): Promise<WorkspaceData> => {
+  const response = await request<WorkspaceData>(
     'post',
     '/workspaces',
     {},
@@ -399,8 +399,8 @@ export const getWorkspaces = async (): Promise<ResponseWorkspaces> => {
   return response.data;
 };
 
-export const getWorkspace = async (workspaceId: number): Promise<ResponseWorkspace> => {
-  const response = await request<ResponseWorkspace>('get', `/workspaces/${workspaceId}`);
+export const getWorkspace = async (workspaceId: number): Promise<WorkspaceData> => {
+  const response = await request<WorkspaceData>('get', `/workspaces/${workspaceId}`);
   return response.data;
 };
 
