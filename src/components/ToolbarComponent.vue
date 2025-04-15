@@ -7,30 +7,30 @@
         <div class="start-comp">
           <img class="logo" alt="icon" src="../assets/icon.svg" />
 
-          <!-- Остальные поповеры -->
+          <!-- Поповеры -->
           <CustomPopover
             label="Кластер"
             popoverId="cluster"
             :popupOptions="popupOptions"
             :customToggle="toggle"
-            :customOpenNewModule="openNewModule"
+            :customOpenNewModule="() => openNewModule('cluster')"
           />
           <CustomPopover
             label="Пользователи"
             popoverId="users"
             :popupOptions="popupOptions"
             :customToggle="toggle"
-            :customOpenNewModule="openNewModule"
+            :customOpenNewModule="() => openNewModule('users')"
           />
           <CustomPopover
             label="securityGroups"
             popoverId="securityGroups"
             :popupOptions="popupOptions"
             :customToggle="toggle"
-            :customOpenNewModule="openNewModule"
+            :customOpenNewModule="() => openNewModule('securityGroups')"
           />
 
-          <!-- Добавить пространство — если активен режим ввода -->
+          <!-- Добавить пространство -->
           <div v-if="isAddingWorkspace" class="add-workspace-inline">
             <InputText
               v-model="workspaceName"
@@ -54,10 +54,13 @@
               class="p-button-text p-button-secondary"
               @click="cancelAddWorkspace"
             />
-            <i v-if="isLoading" class="pi pi-spin pi-spinner text-gray-500" style="font-size: 1.4rem;"></i>
+            <i
+              v-if="isLoading"
+              class="pi pi-spin pi-spinner text-gray-500"
+              style="font-size: 1.4rem"
+            ></i>
           </div>
 
-          <!-- Если не активен режим ввода — показываем кнопку -->
           <Button
             v-else
             label="Добавить пространство"
@@ -71,9 +74,20 @@
 
       <template #end>
         <Avatar
+          ref="avatarButton"
           image="https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png"
-          style="width: 32px; height: 32px"
+          style="width: 32px; height: 32px; cursor: pointer"
+          @click="toggleSettings"
         />
+
+        <OverlayPanel ref="settingsPanel" :dismissable="true">
+          <div class="settings-panel">
+            <div class="settings-item">
+              <span>Полноразмерный формат</span>
+              <InputSwitch v-model="isFullViewEnabled" @change="onFullViewToggle" />
+            </div>
+          </div>
+        </OverlayPanel>
       </template>
     </Toolbar>
   </div>
@@ -82,26 +96,36 @@
 <script setup lang="ts">
 import Toolbar from 'primevue/toolbar';
 import Avatar from 'primevue/avatar';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import Toast from 'primevue/toast';
 import Button from 'primevue/button';
 import CustomPopover from './CustomPopover.vue';
 import InputText from 'primevue/inputtext';
 import { useRenderStore } from '@/stores';
 import { useToast } from 'primevue';
+import OverlayPanel from 'primevue/overlaypanel';
+import InputSwitch from 'primevue/inputswitch';
 
 const store = useRenderStore();
 const toast = useToast();
 const popupOptions = ref([{ name: 'Открыть в новом окне', code: 'create' }]);
 
-// Состояния
+// Состояния добавления пространства
 const isAddingWorkspace = ref(false);
 const workspaceName = ref('');
-const isLoading = ref(false); // 👈 добавили загрузку
+const isLoading = ref(false);
 
-// Флаг чтобы избежать blur при клике на кнопки
+// Настройки панели
+const settingsPanel = ref();
+const avatarButton = ref();
+
+// Полноразмерный формат
+const isFullViewEnabled = ref(false);
+
+// Blur fix
 let blurTimeout: ReturnType<typeof setTimeout> | null = null;
 
+// Поповер переключатели
 const toggle = (id: string) => {
   switch (id) {
     case 'cluster':
@@ -116,19 +140,11 @@ const toggle = (id: string) => {
   }
 };
 
-function openNewModule(popover: object | null) {
-  if (!popover) return;
-
-  const id = popover.$attrs?.id || popover.$el?.id;
-
-  if (!id) return;
-
+// Открытие модулей
+function openNewModule(id: string) {
   switch (id) {
     case 'cluster':
-      console.log('cluster');
-      if (store.modules[0]) {
-        store.modules[0].isActive = false;
-      }
+      if (store.modules[0]) store.modules[0].isActive = false;
       break;
     case 'users':
       console.log('users');
@@ -139,7 +155,7 @@ function openNewModule(popover: object | null) {
   }
 }
 
-// Начать добавление
+// Добавление пространства
 function startAddingWorkspace() {
   isAddingWorkspace.value = true;
   workspaceName.value = '';
@@ -159,7 +175,7 @@ async function confirmAddWorkspace() {
 
   try {
     await store.createWorkspace({ name: workspaceName.value });
-    console.log('opppi')
+
     toast.add({
       severity: 'success',
       summary: 'Успех',
@@ -167,10 +183,8 @@ async function confirmAddWorkspace() {
       life: 3000,
     });
 
-    // 🆕 Загружаем все workspaces после добавления
     await store.fetchWorkspaces();
-  } catch (error) {
-    console.error(error);
+  } catch (error: any) {
     toast.add({
       severity: 'error',
       summary: 'Ошибка',
@@ -185,13 +199,31 @@ async function confirmAddWorkspace() {
 
 // Обработка потери фокуса
 function handleBlur() {
-  // Добавим небольшую задержку, чтобы не срабатывало при клике на кнопки
   blurTimeout = setTimeout(() => {
     cancelAddWorkspace();
   }, 150);
 }
 
-// 🆕 Подгружаем workspaces при монтировании
+// Панель настроек теперь открывается по клику на аватарку
+const toggleSettings = (event: Event) => {
+  settingsPanel.value.toggle(event);
+};
+
+// Переключение полноразмерного формата
+function onFullViewToggle() {
+  store.isFull = isFullViewEnabled.value;
+}
+
+// Следим за изменениями в store для обновления свитча
+watch(
+  () => store.isFull,
+  (newVal) => {
+    isFullViewEnabled.value = !!newVal;
+  },
+  { immediate: true },
+);
+
+// При монтировании страницы
 onMounted(async () => {
   try {
     isLoading.value = true;
@@ -208,15 +240,18 @@ onMounted(async () => {
   width: 100%;
   z-index: 1000;
 }
+
 .toolbar {
   padding-left: 2vw;
   padding-right: 2vw;
 }
+
 .start-comp {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
+
 .logo {
   width: 36px;
 }
@@ -241,5 +276,22 @@ onMounted(async () => {
 
 .workspace-input {
   width: 200px;
+}
+
+.settings-panel {
+  min-width: 220px;
+  padding: 1rem;
+
+  .settings-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+
+    span {
+      font-weight: 500;
+    }
+  }
 }
 </style>

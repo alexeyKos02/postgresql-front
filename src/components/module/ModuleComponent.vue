@@ -4,27 +4,25 @@ import { computed, ref } from 'vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { TypeModule } from '@/types/components';
 
-
 const store = useRenderStore();
-const fullView = computed(() => store.modules[0]?.isActive ?? false);
-const moduleType = computed(() => fullView.value ? 'center': 'divide');
-  // const moduleType = ref<string>('divide');
+const isFull = computed(() => store.isFull);
+// const moduleType = ref<string>('divide');
 const goingBack = computed(() => {
-  if (moduleType.value === 'center') {
+  if (isFull.value) {
     return store.centerModuleHistory.length > 1;
   }
   return 0;
 });
 const backAction = () => {
-  if (store.centerModule?.isActive) {
-    store.centerModule.type = store.centerModuleHistory[store.centerModuleHistory.length - 2];
-    store.centerModuleHistory.pop();
-  }
+  // if (store.centerModule?.isActive) {
+  //   store.centerModule.type = store.centerModuleHistory[store.centerModuleHistory.length - 2];
+  //   store.centerModuleHistory.pop();
+  // }
 };
 const closeModal = () => {
-  if (store.centerModule) {
-    store.centerModule.isActive = false;
-  }
+  // if (store.centerModule) {
+  //   store.centerModule.isActive = false;
+  // }
 };
 </script>
 
@@ -39,7 +37,7 @@ const closeModal = () => {
       />
       <FontAwesomeIcon icon="fa-solid fa-circle-xmark" class="close-btn" @click="closeModal" />
     </div>
-    <div class="module" :class="{ 'module--center': moduleType === 'center' }">
+    <div class="module" :class="{ 'module--center': isFull }">
       <slot></slot>
     </div>
   </div>
@@ -61,7 +59,7 @@ const closeModal = () => {
   width: 100%;
   height: 100%;
   padding: 2% 3%;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Добавляет тень */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Добавляет тень */
   &--center {
     height: 95%;
     // position: absolute;

@@ -5,20 +5,30 @@
 
   <form @submit.prevent="submitForm">
     <div class="form-group">
-      <label>Системное имя</label>
-      <InputText v-model="form.systemName" placeholder="Введите системное имя" required />
+      <label>
+        Системное имя
+        <span v-if="systemNameLoading" class="loader"></span>
+        <span v-else-if="systemNameExists" class="error-text"> — Имя занято</span>
+      </label>
+      <InputText
+        v-model="form.systemName"
+        placeholder="Введите системное имя"
+        required
+        :class="{ 'input-error': systemNameExists }"
+        @blur="validateSystemName"
+      />
     </div>
 
     <div class="double-group">
       <div class="form-group">
         <label>Размер хранилища (GB)</label>
-        <InputText v-model.number="form.storageSize" />
+        <InputText :modelValue="form.storageSize.toString()" @update:modelValue="val => form.storageSize = Number(val)" />
         <Slider v-model="form.storageSize" :min="1" :max="10" />
       </div>
 
       <div class="form-group">
         <label>Количество CPU</label>
-        <InputText v-model.number="form.cpu" />
+        <InputText :modelValue="form.cpu.toString()" @update:modelValue="val => form.cpu = Number(val)" />
         <Slider v-model="form.cpu" :min="100" :max="800" />
       </div>
     </div>
@@ -26,7 +36,7 @@
     <div class="double-group">
       <div class="form-group">
         <label>Память (MB)</label>
-        <InputText v-model.number="form.memory" />
+        <InputText :modelValue="form.memory.toString()" @update:modelValue="val => form.memory = Number(val)" />
         <Slider v-model="form.memory" :min="300" :max="1500" />
       </div>
 
@@ -50,7 +60,7 @@
 
       <div class="form-group">
         <label>Количество инстансов</label>
-        <InputText v-model.number="form.instances" />
+        <InputText :modelValue="form.instances.toString()" @update:modelValue="val => form.instances = Number(val)" />
         <Slider v-model="form.instances" :min="1" :max="5" />
       </div>
     </div>
@@ -82,11 +92,7 @@
     <div class="double-group">
       <div class="form-group">
         <label>Pooler Mode</label>
-        <Select
-          v-model="form.poolerMode"
-          :options="poolerModes"
-          placeholder="Выберите режим"
-        />
+        <Select v-model="form.poolerMode" :options="poolerModes" placeholder="Выберите режим" />
       </div>
 
       <div class="form-group">
@@ -104,28 +110,28 @@
     <div class="double-group">
       <div class="form-group">
         <label>Pooler Max Connections</label>
-        <InputText v-model.number="form.poolerMaxConnections" />
+        <InputText :modelValue="form.poolerMaxConnections.toString()" @update:modelValue="val => form.poolerMaxConnections = Number(val)" />
       </div>
 
       <div class="form-group">
         <label>Pooler Default Pool Size</label>
-        <InputText v-model.number="form.poolerDefaultPoolSize" />
+        <InputText :modelValue="form.poolerDefaultPoolSize.toString()" @update:modelValue="val => form.poolerDefaultPoolSize = Number(val)" />
       </div>
     </div>
 
     <div class="double-group">
       <div class="form-group">
         <label>Backup Schedule Cron</label>
-        <InputText v-model="form.backupScheduleCronExpression" placeholder="например, 0 2 * * *" @blur="validateCron"/>
+        <InputText
+          v-model="form.backupScheduleCronExpression"
+          placeholder="например, 0 2 * * *"
+          @blur="validateCron"
+        />
       </div>
 
       <div class="form-group">
         <label>Метод бэкапа</label>
-        <Select
-          v-model="form.backupMethod"
-          :options="backupMethods"
-          placeholder="Выберите метод"
-        />
+        <Select v-model="form.backupMethod" :options="backupMethods" placeholder="Выберите метод" />
       </div>
     </div>
 
@@ -144,11 +150,15 @@ import Button from 'primevue/button';
 import { useToast } from 'primevue/usetoast';
 import { useRenderStore } from '@/stores';
 import type { CreateClusterDto } from '@/types/api';
+import { checkClusterNameExists } from '@/utils/api';
+
+const props = defineProps<{
+  workspaceId: number;
+}>();
 
 const store = useRenderStore();
 const toast = useToast();
 
-// Data
 const form = ref({
   systemName: '',
   storageSize: 1,
@@ -169,7 +179,6 @@ const form = ref({
   backupMethod: null,
 });
 
-// Options
 const versions = [
   { label: '13', value: 13 },
   { label: '14', value: 14 },
@@ -186,32 +195,62 @@ const securityGroups = [
 
 const backupMethods = ['volumeSnapshot', 'barmanObjectStore'];
 
-function isValidCron(cron: string): boolean {
-  const parts = cron.trim().split(/\s+/);
+// ✅ Проверка systemName
+const systemNameLoading = ref(false);
+const systemNameExists = ref(false);
 
-  if (parts.length !== 5) {
-    return false;
+async function validateSystemName() {
+  const name = form.value.systemName.trim();
+  if (!name) {
+    systemNameExists.value = false;
+    return;
   }
 
+  systemNameLoading.value = true;
+  try {
+    const exists = await checkClusterNameExists(props.workspaceId, name);
+    systemNameExists.value = !exists;
+
+    if (!exists) {
+      toast.add({
+        severity: 'warn',
+        summary: 'Системное имя занято',
+        detail: 'Кластер с таким именем уже существует',
+        life: 3000,
+      });
+    }
+  } catch (error: any) {
+    toast.add({
+      severity: 'error',
+      summary: 'Ошибка проверки имени',
+      detail: error.message || 'Ошибка при проверке системного имени',
+      life: 3000,
+    });
+  } finally {
+    systemNameLoading.value = false;
+  }
+}
+
+// Валидация cron
+function isValidCron(cron: string): boolean {
+  const parts = cron.trim().split(/\s+/);
+  if (parts.length !== 5) return false;
+
   const validators = [
-    { min: 0, max: 59 },  // Минуты
-    { min: 0, max: 23 },  // Часы
-    { min: 1, max: 31 },  // День месяца
-    { min: 1, max: 12 },  // Месяц
-    { min: 0, max: 6 },   // День недели
+    { min: 0, max: 59 },
+    { min: 0, max: 23 },
+    { min: 1, max: 31 },
+    { min: 1, max: 12 },
+    { min: 0, max: 6 },
   ];
 
-  return parts.every((part, index) => validateCronField(part, validators[index].min, validators[index].max));
+  return parts.every((part, index) =>
+    validateCronField(part, validators[index].min, validators[index].max),
+  );
 }
 
 function validateCronField(field: string, min: number, max: number): boolean {
-  const patterns = [
-    /^\*$/,                               // "*"
-    /^[0-9]+$/,                           // "5"
-    /^[0-9]+-[0-9]+$/,                    // "5-10"
-    /^\*\/[0-9]+$/,                       // "*/5"
-    /^[0-9]+(,[0-9]+)+$/,                 // "1,2,3"
-  ];
+  const patterns = [/^\*$/, /^[0-9]+$/, /^[0-9]+-[0-9]+$/, /^\*\/[0-9]+$/, /^[0-9]+(,[0-9]+)+$/];
 
   const isValidPattern = patterns.some((pattern) => pattern.test(field));
   if (!isValidPattern) return false;
@@ -243,6 +282,8 @@ function validateCron() {
     });
   }
 }
+
+// Подготовка данных кластера
 function prepareClusterData(): CreateClusterDto {
   return {
     systemName: form.value.systemName || '',
@@ -267,7 +308,16 @@ function prepareClusterData(): CreateClusterDto {
 
 // Submit
 async function submitForm() {
-  // Валидация Cron перед отправкой
+  if (systemNameExists.value) {
+    toast.add({
+      severity: 'error',
+      summary: 'Ошибка',
+      detail: 'Системное имя занято, выберите другое',
+      life: 3000,
+    });
+    return;
+  }
+
   if (
     form.value.backupScheduleCronExpression &&
     !isValidCron(form.value.backupScheduleCronExpression)
@@ -284,7 +334,7 @@ async function submitForm() {
   const data = prepareClusterData();
 
   try {
-    const response = await store.createCluster(1, data);
+    const response = await store.createCluster(props.workspaceId, data);
 
     toast.add({
       severity: 'success',
@@ -293,7 +343,6 @@ async function submitForm() {
     });
 
     console.log('Кластер успешно создан:', response);
-
   } catch (error: any) {
     console.error('Ошибка при создании кластера:', error);
 
@@ -305,10 +354,36 @@ async function submitForm() {
     });
   }
 }
-
 </script>
 
 <style scoped lang="scss">
+.loader {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid #ccc;
+  border-top: 2px solid var(--p-primary-color);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.error-text {
+  color: #e74c3c;
+  margin-left: 8px;
+  font-size: 12px;
+}
+
+.input-error {
+  border-color: #e74c3c;
+}
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -473,8 +548,6 @@ button {
   }
 }
 </style>
-
-
 
 <!-- <template>
   <div class="modal-header">

@@ -101,7 +101,7 @@ function resetFields(fields: any) {
 
 // Обработка отправки формы
 const handleSubmit = async () => {
-  console.log("ffff");
+  console.log('ffff');
   if (!validateForm()) {
     return;
   }
@@ -119,13 +119,12 @@ const handleSubmit = async () => {
       });
       alert('Регистрация прошла успешно!');
     } else {
-      await getClusters(1);
       // Режим логина
-      // await store.login({
-      //   email: form.email,
-      //   password: form.password,
-      // });
-      // alert('Вход выполнен успешно!');
+      await store.login({
+        email: form.email,
+        password: form.password,
+      });
+      alert('Вход выполнен успешно!');
     }
 
     await router.push('/');
@@ -306,7 +305,9 @@ input {
   font-size: 0.95rem;
   background: #eee;
   border: none;
-  transition: border-color 0.3s, background-color 0.3s;
+  transition:
+    border-color 0.3s,
+    background-color 0.3s;
 }
 
 input:focus {

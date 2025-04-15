@@ -1,46 +1,55 @@
-
-import type { CreateClusterDto, CreateWorkspaceDto, LoginDto, LoginResponseDto, SignupDto, WorkspaceData } from '@/types/api';
+import type {
+  CreateClusterDto,
+  CreateWorkspaceDto,
+  LoginDto,
+  LoginResponseDto,
+  SignupDto,
+  WorkspaceData,
+  ClusterData, // 💡 не забудь импортировать тип кластера, если есть
+} from '@/types/api';
 import { SpacePage, TypeModule, type Module } from '@/types/components';
-import { createCluster, createWorkspace, getWorkspaces, getWorkspace, loginRequest, signupRequest } from '@/utils/api';
+import {
+  createCluster,
+  createWorkspace,
+  getWorkspaces,
+  getWorkspace,
+  getClusters, // 👈 добавляем импорт функции getClusters
+  loginRequest,
+  signupRequest,
+} from '@/utils/api';
 import { defineStore } from 'pinia';
 
 export const useRenderStore = defineStore('render', {
   state: () => ({
-    isLoading: false,
+    isLoading: false as boolean,
     centerModuleHistory: [TypeModule.Space] as TypeModule[],
+    isFull: true as boolean,
     modules: [
       {
         type: TypeModule.Space,
         isActive: true,
         location: 0,
         spacePage: SpacePage.Clusters,
-        cluster: { name: 'center' },
-      },
-      {
-        type: TypeModule.Space,
-        isActive: true,
-        location: 1,
-        spacePage: SpacePage.Clusters,
         cluster: { name: 'first' },
       },
       {
-        type: TypeModule.Space,
+        type: TypeModule.AddUser,
         isActive: true,
-        location: 2,
+        location: 1,
         spacePage: SpacePage.Clusters,
         cluster: { name: 'second' },
       },
       {
-        type: TypeModule.Space,
+        type: TypeModule.ClusterInfo,
         isActive: true,
-        location: 3,
+        location: 2,
         spacePage: SpacePage.Clusters,
         cluster: { name: 'third' },
       },
       {
         type: TypeModule.Space,
         isActive: true,
-        location: 4,
+        location: 3,
         spacePage: SpacePage.Clusters,
         cluster: { name: 'fourth' },
       },
@@ -48,9 +57,11 @@ export const useRenderStore = defineStore('render', {
     user: null as LoginResponseDto | null,
     token: localStorage.getItem('token') || null,
 
-    // ✅ Добавляю состояния для workspaces
     workspaces: [] as WorkspaceData[],
-    currentWorkspace: null as WorkspaceData | null,
+    currentWorkspaces: [{}, {}, {}, {}] as WorkspaceData[],
+
+    // 💡 Добавим clusters в стейт, чтобы было куда сохранять
+    clusters: [[], [], [], []] as ClusterData[][],
   }),
 
   actions: {
@@ -97,7 +108,7 @@ export const useRenderStore = defineStore('render', {
       }
     },
 
-    // === CLUSTER ===
+    // === CLUSTERS ===
 
     async createCluster(workspaceId: number, clusterData: CreateClusterDto) {
       try {
@@ -110,13 +121,25 @@ export const useRenderStore = defineStore('render', {
       }
     },
 
+    // 💡 Добавляем новую обёртку
+    async fetchClusters(workspaceId: number, arrayWorkSpaceId: number) {
+      try {
+        const response = await getClusters(workspaceId);
+        console.log('Кластеры загружены:', response);
+        this.clusters[arrayWorkSpaceId] = response; // ✅ сохраняем кластеры в state
+      } catch (error) {
+        console.error('Ошибка при получении кластеров:', error);
+        throw error;
+      }
+    },
+
     // === WORKSPACES ===
 
     async createWorkspace(workspaceData: CreateWorkspaceDto) {
       try {
         const response = await createWorkspace(workspaceData);
         console.log('Workspace создан:', response);
-        this.workspaces.push(response); // добавляем в список
+        this.workspaces.push(response);
         return response;
       } catch (error) {
         console.error('Ошибка при создании workspace:', error);
@@ -139,7 +162,7 @@ export const useRenderStore = defineStore('render', {
       try {
         const response = await getWorkspace(workspaceId);
         console.log('Workspace загружен:', response.value);
-        this.currentWorkspace = response.value;
+        return response.value;
       } catch (error) {
         console.error('Ошибка при получении workspace:', error);
         throw error;
@@ -147,11 +170,6 @@ export const useRenderStore = defineStore('render', {
     },
   },
 });
-
-
-
-
-
 
 // import type { CreateClusterDto, LoginDto, LoginResponseDto, SignupDto } from '@/types/api';
 // import { SpacePage, TypeModule, type Module } from '@/types/components';

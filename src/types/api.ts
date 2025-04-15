@@ -53,11 +53,14 @@ export interface CreateDatabaseUserRequest {
 }
 
 export interface CreateOrUpdateSecurityGroupDto {
+  name: string;
+  allowedIps: string[];
+}
+export interface ChangeOrUpdateSecurityGroupDto {
   id: number;
   name: string;
   allowedIps: string[];
 }
-
 export interface CreateWorkspaceDto {
   name: string;
 }
@@ -113,15 +116,9 @@ export interface ResponseSecurityGroup {
   value: SecurityGroupData;
 }
 
-export interface ResponseClusters {
-  api_version: string;
-  value: string;
-}
+export type ResponseClusters = { name: string }[];
 
-export interface ResponseSecurityGroups {
-  api_version: string;
-  value: SecurityGroupData[];
-}
+export type ResponseSecurityGroups = SecurityGroupData[];
 
 export interface ResponseInvite {
   api_version: string;
@@ -151,7 +148,7 @@ export interface BackupData {
 }
 
 export interface ClusterData {
-  // Данные о кластере
+  name: string;
 }
 
 export interface DatabaseData {
@@ -159,10 +156,13 @@ export interface DatabaseData {
 }
 
 export interface SecurityGroupData {
-  // Данные о группе безопасности
+  id: number;
+  workspaceId: number;
+  name: string;
+  allowedIps: string[];
 }
 
 export interface WorkspaceData {
-  	id: number;
-		name: string;
+  id: number;
+  name: string;
 }

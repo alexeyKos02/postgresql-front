@@ -7,17 +7,19 @@ import SpaceModule from '@/components/module/pages/SpaceModule.vue';
 import ClusterInfo from './module/pages/ClusterInfo.vue';
 import AddUserPage from './module/pages/AddUserPage.vue';
 import AddSecurityGroup from './module/pages/AddSecurityGroup.vue';
+import { computed } from 'vue';
 const store = useRenderStore();
 
 const props = defineProps<{
   module: Module;
 }>();
+const workSpace = computed(() => store.workspaces[0]);
 </script>
 
 <template>
   <transition name="fade">
     <ModuleComponent v-if="module.type === TypeModule.CreateCluster">
-      <ClusterComponent />
+      <ClusterComponent  :workspace-id="workSpace.id"/>
     </ModuleComponent>
   </transition>
   <transition name="fade">
@@ -37,7 +39,7 @@ const props = defineProps<{
   </transition>
   <transition name="fade">
     <ModuleComponent v-if="module.type === TypeModule.AddSecurityGroup" class="add-user-module">
-      <AddSecurityGroup class="add-user" />
+      <AddSecurityGroup class="add-user" :workspace-id="workSpace.id"/>
     </ModuleComponent>
   </transition>
 </template>

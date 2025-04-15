@@ -57,20 +57,20 @@ function check() {
   });
 }
 
-const search = (event) => {
-  items.value = [...Array(10).keys()].map((item) => event.query + '-' + item);
-};
+// const search = (event) => {
+//   items.value = [...Array(10).keys()].map((item) => event.query + '-' + item);
+// };
 
-const backAction = () => {
-  if (store.centerModule) {
-    store.centerModule.type = TypeModule.Space;
-  }
-};
-const closeModal = () => {
-  if (store.centerModule) {
-    store.centerModule.isActive = false;
-  }
-};
+// const backAction = () => {
+//   if (store.centerModule) {
+//     store.centerModule.type = TypeModule.Space;
+//   }
+// };
+// const closeModal = () => {
+//   if (store.centerModule) {
+//     store.centerModule.isActive = false;
+//   }
+// };
 </script>
 
 <style lang="scss" scoped>

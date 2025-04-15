@@ -54,11 +54,11 @@ onUnmounted(() => {
   document.removeEventListener('mousemove', resize);
   document.removeEventListener('mouseup', stopResizing);
 });
-function open() {
-  if (store.centerModule) {
-    store.centerModule.isActive = true;
-  }
-}
+// function open() {
+//   if (store.centerModule) {
+//     store.centerModule.isActive = true;
+//   }
+// }
 </script>
 
 <style lang="scss">

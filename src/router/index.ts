@@ -20,7 +20,6 @@ const router = createRouter({
 
 export default router;
 
-
 // import RegistrationOrAuthView from '@/views/RegistrationOrAuthView.vue';
 // import WorkSpace from '@/views/WorkSpace.vue';
 // import { createRouter, createWebHistory } from 'vue-router';

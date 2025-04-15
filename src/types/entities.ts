@@ -15,5 +15,5 @@ export interface Cluster {
 
 export interface SecurityGroup {
   name: string;
-  id: string;
+  id: number;
 }

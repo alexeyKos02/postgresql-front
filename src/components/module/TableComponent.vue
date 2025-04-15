@@ -3,161 +3,126 @@ import { useRenderStore } from '@/stores';
 import { TypeModule } from '@/types/components';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { defineProps } from 'vue';
-import { UserRole, type Cluster, type SecurityGroup, type User } from '@/types/entities';
+import { UserRole, type SecurityGroup, type User } from '@/types/entities';
 import Tag from 'primevue/tag';
+
 const props = defineProps<{
   users?: User[];
-  clusters?: Cluster[];
   securityGoups?: SecurityGroup[];
   functions?: ((id: string) => void)[];
 }>();
+
 const store = useRenderStore();
+
 function openInfo() {
   if (store.modules[0]) {
     store.modules[0].type = TypeModule.ClusterInfo;
   }
 }
 </script>
+
 <template>
   <div class="container">
-    <div v-for="cluster in props.clusters" :key="cluster.name" class="item" @click="openInfo">
-      <span>{{ cluster.name }}</span>
-      <div class="btns-pannel">
-        <button
-          class="btn-restart"
-          :onclick="() => props.functions && props.functions[0] && props.functions[0](cluster.name)"
-        >
-          <FontAwesomeIcon icon="fa-solid fa-rotate-right" />
-        </button>
-        <button
-          class="btn-stop"
-          :onclick="() => props.functions && props.functions[1] && props.functions[1](cluster.name)"
-        >
-          <FontAwesomeIcon icon="fa-solid fa-pause" />
-        </button>
-        <button
-          class="btn-delete"
-          :onclick="() => props.functions && props.functions[2] && props.functions[2](cluster.name)"
-        >
-          <FontAwesomeIcon icon="fa-solid fa-trash" />
-        </button>
-        <button class="btn-edit"><FontAwesomeIcon icon="fa-solid fa-pen" /></button>
-      </div>
-    </div>
+    <!-- Users -->
     <div v-for="user in props.users" :key="user.email" class="item" @click="openInfo">
-      <span>{{ user.email }}</span>
-      <div style="display: flex; align-items: center; gap: 6px">
-        <div>
-          <Tag severity="info" value="ADMIN" rounded v-if="user.role === UserRole.ADMIN"></Tag>
-          <Tag severity="info" value="EDITOR" rounded v-if="user.role === UserRole.EDITOR"></Tag>
-          <Tag severity="info" value="VIEWER" rounded v-if="user.role === UserRole.VIEWER"></Tag>
-        </div>
-        <button class="btn-delete">
-          <FontAwesomeIcon
-            icon="fa-solid fa-trash"
-            :onclick="() => props.functions && props.functions[0] && props.functions[0](user.email)"
-          />
-        </button>
+      <div class="info">
+        <span>{{ user.email }}</span>
+        <Tag severity="info" value="ADMIN" rounded v-if="user.role === UserRole.ADMIN" class="tag" />
+        <Tag severity="info" value="EDITOR" rounded v-if="user.role === UserRole.EDITOR" class="tag" />
+        <Tag severity="info" value="VIEWER" rounded v-if="user.role === UserRole.VIEWER" class="tag" />
       </div>
+      <button class="btn-icon" @click.stop="props.functions?.[0]?.(user.email)">
+        <FontAwesomeIcon icon="fa-solid fa-trash" />
+      </button>
     </div>
+
+    <!-- Security Groups -->
     <div v-for="group in props.securityGoups" :key="group.id" class="item" @click="openInfo">
-      <span>{{ group.name }}</span>
-      <div style="flex: 0">
-        <button
-          class="btn-delete"
-          :onclick="() => props.functions && props.functions[0] && props.functions[0](group.name)"
-        >
-          <FontAwesomeIcon icon="fa-solid fa-trash" />
-        </button>
+      <div class="info">
+        <span>{{ group.name }}</span>
       </div>
+      <button class="btn-icon" @click.stop="props.functions?.[0]?.(String(group.id))">
+        <FontAwesomeIcon icon="fa-solid fa-trash" />
+      </button>
     </div>
   </div>
 </template>
 
-<style lang="scss" scoped>
-.btns-pannel {
-  position: relative;
-  display: flex;
-  justify-content: space-between;
-}
-
+<style scoped lang="scss">
+/* 🌿 Фон всей области */
 .container {
   display: flex;
-  flex-direction: column; /* Вертикальное расположение */
-  width: 100%; /* Ширина контейнера */
+  flex-direction: column;
+  width: 100%;
+  gap: 12px;
+  background-color: #f7f9fb; /* светлый фон */
+  padding: 16px;
+  border-radius: 8px;
 }
+
+/* 🧩 Карточка элемента */
 .item {
   display: flex;
-  justify-content: space-between; /* Распределение по ширине */
-  align-items: center; /* Центрирование по вертикали */
-  padding: 10px;
-  background-color: white;
-  margin-bottom: 10px; /* Отступ между элементами */
-  border-radius: 5px; /* Закругление углов */
-  background-color: #f4f4f5;
-}
-button {
-  padding: 10px 15px;
-  margin-right: 5px;
-  flex: 1;
-  border: 1px solid transparent;
-  border-radius: 4px;
-  text-align: center;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  border: 1px solid #e0e6ed;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
   cursor: pointer;
-  font-size: 14px;
-  background-color: #fff;
-  transition: all 0.2s linear;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-color: #d0d7de;
+    background-color: #fcfcfc;
+  }
 }
-.role-space {
-  margin-right: 3px;
+
+.info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+  color: #333;
+
+  span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 220px;
+    color: #1f2937; /* чуть темнее для лучшего контраста */
+  }
 }
-.btn-restart {
-  border-color: #4caf50;
-  // background-color: #4caf50;
-  color: #4caf50;
-}
-.btn-restart:hover {
-  // border-color: #4caf50;
-  background-color: #4caf50;
-  color: white;
-}
-.btn-stop {
-  border-color: #f39c12;
-  color: #f39c12;
-  // background-color: #f39c12;
-  // color: #fff;
-}
-.btn-stop:hover {
-  // border-color: #4caf50;
-  background-color: #f39c12;
-  color: white;
-}
-.btn-delete {
-  border-color: #e74c3c;
+
+/* 🗑 Кнопка удаления */
+.btn-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
   color: #e74c3c;
-  // background-color: #e74c3c;
-  // color: #fff;
+  border-radius: 50%;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+
+  &:hover {
+    background-color: rgba(231, 76, 60, 0.12);
+    transform: scale(1.1);
+  }
+
+  &:focus {
+    outline: none;
+  }
 }
-.btn-delete:hover {
-  // border-color: #4caf50;
-  background-color: #e74c3c;
-  color: white;
-}
-.btn-edit {
-  border-color: #3498db;
-  color: #3498db;
-  // background-color: #3498db;
-  // color: #fff;
-}
-.btn-edit:hover {
-  // border-color: #4caf50;
-  background-color: #3498db;
-  color: white;
-}
-td button:hover {
-  opacity: 0.9;
-}
-td button:focus {
-  outline: none;
+
+/* 🎖 Тег роли */
+.tag {
+  font-size: 12px;
+  padding: 2px 8px;
 }
 </style>

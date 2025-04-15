@@ -9,6 +9,7 @@
         selectionMode="single"
         :metaKeySelection="false"
         class="w-full md:w-[30rem]"
+        @node-select="onNodeSelect"
       >
         <template #default="slotProps">
           <div class="node-content">
@@ -34,7 +35,7 @@ const { workspaces } = storeToRefs(store); // Референс на store
 const toast = useToast();
 const selectedKey = ref({});
 
-// Динамически формируем nodes
+// ✅ Динамически формируем nodes
 const nodes = computed<TreeNode[]>(() => [
   {
     label: 'Пространства',
@@ -44,17 +45,30 @@ const nodes = computed<TreeNode[]>(() => [
       label: workspace.name,
       key: `0-${index}`,
       icon: 'pi pi-file',
+      data: workspace, // добавляем workspace в data узла
     })),
   },
 ]);
 
-// Выбор узла дерева
 const onNodeSelect = (node: TreeNode) => {
-  console.log(node);
+  const selectedWorkspace = node.data;
+
+  if (!selectedWorkspace) {
+    toast.add({
+      severity: 'warn',
+      summary: 'Нет данных',
+      detail: 'Workspace не найден',
+      life: 3000,
+    });
+    return;
+  }
+
+  store.currentWorkspaces[0] = selectedWorkspace;
+
   toast.add({
     severity: 'success',
     summary: 'Пространство выбрано',
-    detail: node.label,
+    detail: selectedWorkspace.name,
     life: 3000,
   });
 };

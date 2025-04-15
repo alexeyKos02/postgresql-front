@@ -12,8 +12,8 @@ import FillModule from '@/components/FillModule.vue';
 const store = useRenderStore();
 
 // const fullView = ref<boolean>(false);
-
-const fullView = computed(() => store.modules[0]?.isActive ?? false);
+const fullView = computed(() => store.isFull);
+// const fullView = computed(() => store.modules[0]?.isActive ?? false);
 
 const dividedModules = ref<Module[]>(store.modules);
 const close = ref<boolean>(true);
@@ -43,20 +43,20 @@ function chahgeView() {
           <SplitterPanel class="flex items-center justify-center" :size="50" :minSize="10">
             <Splitter layout="vertical">
               <SplitterPanel class="flex items-center justify-center" :size="50">
-                <FillModule :module="dividedModules[1]" />
+                <FillModule :module="dividedModules[0]" />
               </SplitterPanel>
               <SplitterPanel :size="50">
-                <!-- <FillModule :module="dividedModules[4]" />  -->
+                <FillModule :module="dividedModules[3]" />
               </SplitterPanel>
             </Splitter>
           </SplitterPanel>
           <SplitterPanel class="flex items-center justify-center" :size="50" :minSize="10">
             <Splitter layout="vertical">
               <SplitterPanel class="flex items-center justify-center" :size="50">
-                <FillModule :module="dividedModules[2]" />
+                <FillModule :module="dividedModules[1]" />
               </SplitterPanel>
               <SplitterPanel :size="50">
-                <!-- <FillModule :module="dividedModules[3]" /> -->
+                <FillModule :module="dividedModules[2]" />
               </SplitterPanel>
             </Splitter>
           </SplitterPanel>

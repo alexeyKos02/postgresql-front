@@ -1,51 +1,86 @@
 <script lang="ts" setup>
 import type { ButtonClass } from '@/types/components';
-import { defineProps } from 'vue';
+import { defineProps, ref } from 'vue';
+
 const props = defineProps<{
   buttons: ButtonClass[];
 }>();
-console.log(props);
+
+// Локальный reactive индекс активной кнопки
+const activeIndex = ref<number | null>(null);
+
+function handleClick(index: number, action: () => void) {
+  activeIndex.value = index;
+  action();
+}
 </script>
+
 <template>
   <div class="button-line">
-    <div v-for="(button, index) in buttons" :key="index" @click="button.action" class="btn-14">
+    <div
+      v-for="(button, index) in buttons"
+      :key="index"
+      @click="handleClick(index, button.action)"
+      class="btn-14"
+      :class="{ active: activeIndex === index }"
+    >
       {{ button.label }}
     </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
-/* Стили для кнопок и линии */
 .button-line {
   position: relative;
   display: flex;
   justify-content: center;
-  margin-top: -2px;
   width: 100%;
+  border-bottom: 1px solid var(--p-primary-color);
 }
 
 .btn-14 {
   flex: 1;
   text-align: center;
   display: inline-block;
-  padding: 15px 40px;
+  padding: 16px 40px;
   cursor: pointer;
-  letter-spacing: 2px;
+  letter-spacing: 1.5px;
   position: relative;
   overflow: hidden;
-  border-bottom: 2px solid black;
+  border-bottom: 2px solid var(--p-primary-color);
+  font-weight: 500;
+  color: #333;
+  background-color: #fff;
+  transition: all 0.3s ease;
+  user-select: none;
+
+  &:hover,
+  &.active {
+    color: var(--p-primary-color);
+    background-color: #f9f9f9;
+  }
+
+  &:active {
+    background-color: #f0f8ff;
+    color: var(--p-primary-color);
+  }
+
+  &.active:before {
+    width: 100%;
+    left: 0;
+  }
 }
 
 .btn-14:before {
   content: '';
   position: absolute;
   width: 0;
-  background: black;
-  left: 45%;
+  background: var(--p-primary-color);
+  left: 50%;
   height: 2px;
   top: 0;
   transition: all 0.3s;
-  opacity: 0.7;
+  opacity: 0.9;
 }
 
 .btn-14:hover:before {

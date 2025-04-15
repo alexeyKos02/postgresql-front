@@ -1,187 +1,305 @@
 <template>
   <div class="modal-header">
-    <h1>Создание нового Security Group</h1>
+    <h1>Создание новой Security Group</h1>
   </div>
-  <div>
-    <form @submit.prevent="createSecurityGroup" class="security-group-creator">
+  <form @submit.prevent="handleCreateSecurityGroup" class="security-group-creator">
+    <div class="form-line">
       <div class="form-group">
         <label for="name">Название группы</label>
-        <InputText id="name" v-model="value" aria-describedby="name-help" required />
-
-        <label for="CIDR">CIDR входящего потока</label>
-        <InputText id="CIDR" v-model="cidr" aria-describedby="CIDR-help" required />
-        <Button icon="pi pi-plus" aria-label="Filter" :onclick="addCDIR" />
+        <InputText id="name" v-model="value" placeholder="Например: my-security-group" required />
       </div>
       <div class="form-group">
-        <ScrollPanel
-          style="width: 100%; height: 200px"
-          class="table"
-          :dt="{
-            bar: {
-              background: '{primary.color}',
-            },
-          }"
+        <label for="CIDR"
+          >CIDR входящего потока <small>(например, 192.168.1.0/24 или x.x.x.x)</small></label
         >
-          <TableComponent :clusters="clusters"></TableComponent>
-        </ScrollPanel>
-        <Button type="submit" :onclick="check">Создать</Button>
+        <div class="cidr-input">
+          <InputText
+            id="CIDR"
+            v-model="cidr"
+            placeholder="192.168.1.0/24"
+            :class="{ 'input-error': cidrError }"
+            @keyup.enter="addCIDR"
+          />
+          <Button icon="pi pi-plus" severity="secondary" @click="addCIDR" text rounded />
+        </div>
+        <span v-if="cidrError" class="error-text">Некорректный или уже добавленный CIDR</span>
       </div>
-    </form>
-  </div>
+    </div>
+
+    <div class="form-group">
+      <label>Добавленные CIDR:</label>
+      <ScrollPanel class="cidr-list" style="width: 100%; height: 150px">
+        <div v-if="clusters.length === 0" class="empty-text">CIDR пока не добавлены</div>
+        <transition-group name="fade" tag="ul">
+          <li v-for="(item, index) in clusters" :key="item.name">
+            {{ item.name }}
+            <Button
+              icon="pi pi-times"
+              text
+              severity="danger"
+              size="small"
+              @click="removeCIDR(index)"
+            />
+          </li>
+        </transition-group>
+      </ScrollPanel>
+    </div>
+
+    <div class="form-actions">
+      <Button
+        label="Создать группу"
+        icon="pi pi-check"
+        severity="primary"
+        type="submit"
+        :disabled="!value || loading"
+      />
+    </div>
+  </form>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
-import type { Cluster } from '@/types/entities';
-import TableComponent from '../TableComponent.vue';
 import ScrollPanel from 'primevue/scrollpanel';
 import { useToast } from 'primevue/usetoast';
+import type { Cluster } from '@/types/entities';
+import { createSecurityGroup } from '@/utils/api';
+
+const props = defineProps<{
+  workspaceId: number;
+}>();
+
 const toast = useToast();
 
-const value = ref(null);
-const cidr = ref(null);
-// Для хранения данных Security Group
-const groupName = ref('');
-const description = ref('');
-const vpcId = ref('');
-const securityGroupId = ref<string | null>(null);
-const form = ref({
-  database: '',
-  owner: '',
-  lcCollate: '',
-  lcCtype: '',
-});
-const clusters: Cluster[] = Array.from({ length: 15 }, (_, index) => ({
-  name: `CIDR ${index + 1}`,
-}));
-// Для хранения правил Ingress (входящий) и Egress (исходящий) трафика
-const ingressRule = ref({ protocol: 'tcp', port: 80, cidr: '0.0.0.0/0' });
-const egressRule = ref({ protocol: 'tcp', port: 443, cidr: '0.0.0.0/0' });
-const successMessage = ref<string | null>(null);
+const value = ref('');
+const cidr = ref('');
+const clusters = ref<Cluster[]>([]);
+const cidrError = ref(false);
+const loading = ref(false);
 
-function addCDIR() {
-  toast.add({
-    severity: 'success',
-    summary: `CIDR добавлен`,
-    detail: 'CIDR15',
-    life: 3000,
-  });
+function isValidCIDR(value: string): boolean {
+  const cidrPattern = /^(\d{1,3}\.){3}\d{1,3}(\/\d{1,2})?$/;
+  return cidrPattern.test(value.trim());
 }
 
-function check() {
-  toast.add({
-    severity: 'success',
-    summary: `Security groups добавлен`,
-    detail: value,
-    life: 3000,
-  });
-}
+function addCIDR() {
+  const trimmed = cidr.value.trim();
 
-// Функция создания Security Group
-async function createSecurityGroup() {
-  // Здесь должна быть логика API-запроса
-  console.log('Создание Security Group с данными:', {
-    groupName: groupName.value,
-    description: description.value,
-    vpcId: vpcId.value,
-  });
-
-  // Логика HTTP-запроса для создания Security Group (например, через axios или fetch)
-  // Пример: Условно считается, что ID группы будет возвращен сервером
-  // const response = await axios.post('API_URL/security-groups', { ... });
-  // securityGroupId.value = response.data.id;
-
-  // Заглушка для демонстрации
-  securityGroupId.value = 'sg-12345';
-  successMessage.value = `Security Group успешно создана с ID: ${securityGroupId.value}`;
-}
-
-// Функция добавления правила ingress
-async function addIngressRule() {
-  console.log('Добавление правила ingress:', ingressRule.value);
-
-  if (!securityGroupId.value) {
-    alert('Создайте Security Group перед добавлением правил');
+  if (!trimmed || !isValidCIDR(trimmed) || clusters.value.some((c) => c.name === trimmed)) {
+    cidrError.value = true;
+    toast.add({
+      severity: 'error',
+      summary: 'Ошибка',
+      detail: 'Некорректный формат или CIDR уже добавлен',
+      life: 3000,
+    });
     return;
   }
 
-  // Логика запроса для добавления ingress правила
-  // Пример: await axios.post(`API_URL/security-groups/${securityGroupId.value}/ingress`, { ... });
-  successMessage.value = `Правило Ingress добавлено для Security Group: ${securityGroupId.value}`;
+  clusters.value.push({ name: trimmed });
+  cidr.value = '';
+  cidrError.value = false;
+
+  toast.add({
+    severity: 'success',
+    summary: 'CIDR добавлен',
+    life: 2000,
+  });
+
+  setTimeout(() => {
+    const panel = document.querySelector('.p-scrollpanel-content');
+    if (panel) panel.scrollTop = panel.scrollHeight;
+  }, 100);
 }
 
-// Функция добавления правила egress
-async function addEgressRule() {
-  console.log('Добавление правила egress:', egressRule.value);
+function removeCIDR(index: number) {
+  clusters.value.splice(index, 1);
+  toast.add({
+    severity: 'info',
+    summary: 'CIDR удален',
+    life: 2000,
+  });
+}
 
-  if (!securityGroupId.value) {
-    alert('Создайте Security Group перед добавлением правил');
+async function handleCreateSecurityGroup() {
+  // Проверка: должен быть хотя бы один CIDR
+  if (clusters.value.length === 0) {
+    toast.add({
+      severity: 'warn',
+      summary: 'Добавьте хотя бы один CIDR',
+      life: 3000,
+    });
     return;
   }
 
-  // Логика запроса для добавления egress правила
-  // Пример: await axios.post(`API_URL/security-groups/${securityGroupId.value}/egress`, { ... });
-  successMessage.value = `Правило Egress добавлено для Security Group: ${securityGroupId.value}`;
+  loading.value = true;
+
+  try {
+    const requestBody = {
+      id: 0,
+      name: value.value.trim(),
+      allowedIps: clusters.value.map((item) => item.name),
+    };
+
+    await createSecurityGroup(props.workspaceId, requestBody);
+
+    toast.add({
+      severity: 'success',
+      summary: 'Security Group успешно создана',
+      detail: value.value,
+      life: 3000,
+    });
+
+    resetForm();
+  } catch (error: any) {
+    toast.add({
+      severity: 'error',
+      summary: 'Ошибка создания группы',
+      detail: error.message || 'Не удалось создать группу',
+      life: 4000,
+    });
+  } finally {
+    loading.value = false;
+  }
+}
+
+function resetForm() {
+  value.value = '';
+  cidr.value = '';
+  clusters.value = [];
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 2px solid #f0f0f0;
-  padding-bottom: 10px;
-}
-.security-group-creator {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap; /* Позволяет переносить элементы на следующую строку */
-  gap: 20px;
-  margin-top: 15px;
-  .form-group {
-    flex: 1 1 calc(50% - 20px); /* Элемент занимает 50% ширины контейнера с учётом отступов */
-    min-width: 200px; /* Минимальная ширина */
-    box-sizing: border-box; /* Учитывает padding и border */
+  padding-bottom: 16px;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 20px;
+
+  h1 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
   }
 }
 
-form div {
-  margin-bottom: 1rem;
+.security-group-creator {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-label {
-  display: block;
-  font-weight: bold;
+.form-line {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
 }
 
-input,
-button {
-  padding: 0.5rem;
-  width: 100%;
+.form-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  label {
+    font-weight: 600;
+    color: #555;
+  }
+
+  .cidr-input {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    input {
+      flex: 1;
+    }
+  }
+
+  .error-text {
+    color: #e74c3c;
+    font-size: 12px;
+  }
 }
 
-button {
-  margin-top: 1rem;
-  width: 10%;
-  /* background-color: #4caf50;
-  border: none;
-  color: white;
-  cursor: pointer; */
+.cidr-list {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 0;
+  background: #fafafa;
+
+  .p-scrollpanel-content {
+    padding: 8px;
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 4px;
+      border-bottom: 1px solid #eee;
+      transition: background-color 0.3s ease;
+
+      &:last-child {
+        border-bottom: none;
+        margin-bottom: 4px;
+      }
+
+      &:hover {
+        background: #f8f8f8;
+      }
+
+      button {
+        margin-left: 10px;
+      }
+    }
+  }
+
+  .empty-text {
+    text-align: center;
+    color: #888;
+    font-size: 13px;
+    padding: 10px 0;
+  }
 }
 
-/* button:hover {
-  background-color: #45a049;
-} */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+}
 
-.success-message {
-  margin-top: 1rem;
-  padding: 1rem;
-  background-color: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
-  border-radius: 4px;
+.input-error {
+  border-color: #e74c3c;
+}
+
+button,
+.p-button {
+  transition: all 0.3s ease;
+}
+
+button:hover,
+.p-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: all 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(-5px);
 }
 </style>
