@@ -12,18 +12,16 @@ const props = defineProps<{
   customOpenNewModule: (popover: object | null) => void;
 }>();
 
-const op = ref();
-
+const op = ref<InstanceType<typeof Popover> | null>(null);
 const currentOption = ref();
 
 function toggle(event: Event, id: string) {
-  op.value.toggle(event);
+  op.value?.toggle(event);
   props.customToggle(id);
 }
+
 function openNewModule(popover: object | null) {
-  if (!popover) {
-    return;
-  }
+  if (!popover) return;
   currentOption.value = '';
   props.customOpenNewModule(popover);
 }
@@ -37,10 +35,11 @@ function openNewModule(popover: object | null) {
         :options="popupOptions"
         optionLabel="name"
         class="w-full md:w-56"
-        @change="() => openNewModule($refs.op)"
+        @change="() => openNewModule(op)"
       />
     </div>
   </Popover>
+
   <div class="card flex justify-center">
     <Button
       type="button"
@@ -51,10 +50,12 @@ function openNewModule(popover: object | null) {
     />
   </div>
 </template>
+
 <style lang="scss">
 .popup {
   .p-popover-content {
     padding: 0;
+
     .p-listbox {
       border: 0;
     }

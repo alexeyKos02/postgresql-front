@@ -172,18 +172,19 @@ const form = ref({
   memory: 300,
   majorVersion: null,
   databaseName: '',
-  lcCollate: '',
-  lcCtype: '',
+  lcCollate: 'C',
+  lcCtype: 'C',
   instances: 1,
   ownerName: '',
   ownerPassword: '',
   poolerMode: null,
-  poolerMaxConnections: 10,
-  poolerDefaultPoolSize: 5,
+  poolerMaxConnections: 1000,
+  poolerDefaultPoolSize: 10,
   securityGroupId: null,
   backupScheduleCronExpression: '',
   backupMethod: null,
 });
+
 const versions = [
   { label: '13', value: 13 },
   { label: '14', value: 14 },
@@ -209,9 +210,9 @@ async function validateSystemName() {
   systemNameLoading.value = true;
   try {
     const exists = await checkClusterNameExists(props.workspaceId, name);
-    systemNameExists.value = !exists;
+    systemNameExists.value = exists;
 
-    if (!exists) {
+    if (exists) {
       toast.add({
         severity: 'warn',
         summary: 'Системное имя занято',

@@ -203,11 +203,11 @@ export const checkClusterNameExists = async (
   workspaceId: number,
   systemName: string,
 ): Promise<boolean> => {
-  const response = await request<boolean>(
+  const response = await request<{ exists: boolean }>(
     'get',
     `/workspace/${workspaceId}/cluster/${systemName}/exists`,
   );
-  return response.data;
+  return response.data.exists;
 };
 
 // === Databases ===
