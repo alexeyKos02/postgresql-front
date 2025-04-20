@@ -42,25 +42,23 @@
 
     <transition name="fade">
       <div v-if="expandedDatabases">
-        <TableComponent :databases="databases" :functions="[deleteDb]" />
-
         <transition name="fade">
           <div v-if="showAddForm" class="db-card-form">
             <div class="db-card-title">Новая база данных</div>
-
             <div class="db-form-grid">
               <div class="db-field" v-for="(label, key) in newDbLabels" :key="key">
                 <label>{{ label }}</label>
                 <input v-model="newDatabase[key]" type="text" />
               </div>
             </div>
-
             <div class="form-footer">
               <button class="cancel-btn" @click="showAddForm = false">Отмена</button>
               <button class="submit-db-btn" @click="submitNewDatabase">Создать</button>
             </div>
           </div>
         </transition>
+
+        <TableComponent :databases="databases" :functions="[deleteDb]" />
       </div>
     </transition>
 
@@ -79,12 +77,9 @@
 
     <transition name="fade">
       <div v-if="expandedUsers">
-        <TableComponent :clusterUsers="users" />
-
         <transition name="fade">
           <div v-if="showUserForm" class="db-card-form">
             <div class="db-card-title">Новый пользователь</div>
-
             <div class="db-form-grid">
               <div class="db-field">
                 <label>Имя пользователя</label>
@@ -92,12 +87,15 @@
               </div>
               <div class="db-field">
                 <label>Пароль</label>
-                <div class="password-with-button">
+                <div class="password-field-with-icon">
                   <Password v-model="newUser.password" toggleMask style="width: 100%" />
-                  <Button label="Сгенерировать" @click="generatePassword" size="small" />
+                  <i
+                    class="pi pi-key password-icon"
+                    v-tooltip="'Сгенерировать пароль'"
+                    @click="generatePassword"
+                  />
                 </div>
               </div>
-
               <div class="db-field">
                 <label>База данных</label>
                 <Dropdown
@@ -131,17 +129,19 @@
                 />
               </div>
             </div>
-
             <div class="form-footer">
               <button class="cancel-btn" @click="showUserForm = false">Отмена</button>
               <button class="submit-db-btn" @click="submitNewUser">Создать</button>
             </div>
           </div>
         </transition>
+
+        <TableComponent :clusterUsers="users" />
       </div>
     </transition>
   </div>
 </template>
+
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
@@ -152,6 +152,7 @@ import {
   createDatabase,
   deleteDatabase,
   createDatabaseUser,
+  getDatabasesRoles,
 } from '@/utils/api';
 import { useRenderStore } from '@/stores';
 import { storeToRefs } from 'pinia';
@@ -164,8 +165,6 @@ import InputText from 'primevue/inputtext';
 import Password from 'primevue/password';
 import MultiSelect from 'primevue/multiselect';
 import Calendar from 'primevue/calendar';
-import Button from 'primevue/button';
-
 const props = defineProps<{
   workspaceId: number;
   moduleId: number;
@@ -184,6 +183,7 @@ const loading = ref(true);
 const cluster = ref<ResponseCluster | null>(null);
 const databases = ref<string[]>([]);
 const users = ref<ClusterUser[]>([]);
+const availableRoles = ref<string[]>([]);
 
 const newDatabase = ref<CreateDatabaseRequest>({
   database: '',
@@ -206,7 +206,6 @@ const newDbLabels: Record<keyof CreateDatabaseRequest, string> = {
   lcCollate: 'lcCollate',
   lcCtype: 'lcCtype',
 };
-const availableRoles = ref<string[]>(['pg_monitor', 'read', 'write', 'admin']);
 
 watch(
   () => singleClusters.value[props.moduleId],
@@ -225,6 +224,19 @@ watch(
   },
   { immediate: true },
 );
+
+// Загрузка ролей при открытии формы создания пользователя
+watch(showUserForm, async (visible) => {
+  if (visible && cluster.value) {
+    try {
+      const rolesResponse = await getDatabasesRoles(props.workspaceId, cluster.value.id);
+      availableRoles.value = rolesResponse || [];
+    } catch (err) {
+      console.error('Ошибка загрузки ролей:', err);
+      availableRoles.value = [];
+    }
+  }
+});
 
 const displayData = computed(() => {
   if (!cluster.value) return {};
@@ -324,6 +336,7 @@ function generatePassword() {
 }
 </script>
 
+
 <style scoped lang="scss">
 .cluster-details {
   padding-bottom: 40px;
@@ -334,6 +347,7 @@ function generatePassword() {
   justify-content: space-between;
   align-items: center;
   gap: 12px;
+  margin-bottom: 12px;
 }
 
 .right-controls {
@@ -453,9 +467,7 @@ function generatePassword() {
   padding: 6px;
   border-radius: 50%;
   cursor: pointer;
-  transition:
-    background-color 0.2s ease,
-    transform 0.2s ease;
+  transition: background-color 0.2s ease, transform 0.2s ease;
   font-size: 14px;
 
   &.red {
@@ -470,11 +482,23 @@ function generatePassword() {
 
 .db-card-form {
   background: #ffffff;
-  margin-top: 20px;
+  margin: 24px 0;
   padding: 20px;
   border: 1px solid #dcdfe3;
   border-radius: 10px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  animation: fadeInUp 0.3s ease;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .db-card-title {
@@ -504,10 +528,12 @@ function generatePassword() {
   border: 1px solid #d1d5db;
   border-radius: 6px;
 }
+
 .db-dropdown :deep(.p-dropdown) {
   width: 100%;
   min-width: 0;
 }
+
 .form-footer {
   display: flex;
   justify-content: flex-end;
@@ -559,9 +585,11 @@ function generatePassword() {
   padding-left: 2px;
   margin-top: 6px;
 }
+
 .p-password-input {
   width: 100% !important;
 }
+
 .password-with-button {
   display: flex;
   gap: 8px;
@@ -571,9 +599,27 @@ function generatePassword() {
     flex: 1;
   }
 }
+
+.password-field-with-icon {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .password-icon {
+    font-size: 1.2rem;
+    color: #3498db;
+    cursor: pointer;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: #1c78b8;
+    }
+  }
+}
 </style>
+
 <style>
-.p-password-input {
+.p-inputtext {
   width: 100% !important;
 }
 </style>
