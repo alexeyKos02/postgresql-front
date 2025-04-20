@@ -34,25 +34,14 @@
         </div>
       </div>
 
-      <Button
-        icon="pi pi-check"
-        rounded
-        aria-label="Добавить"
-        class="check-btn"
-        @click="invite"
-      />
+      <Button icon="pi pi-check" rounded aria-label="Добавить" class="check-btn" @click="invite" />
     </div>
 
     <!-- Выбор роли -->
     <div class="radio-buttons--wrapper">
       <div class="radio-buttons">
         <div class="radio-buttons--element" v-for="r in roles" :key="r.value">
-          <RadioButton
-            v-model="role"
-            :inputId="r.value"
-            name="role"
-            :value="r.value"
-          />
+          <RadioButton v-model="role" :inputId="r.value" name="role" :value="r.value" />
           <label :for="r.value">{{ r.label }}</label>
         </div>
       </div>
@@ -144,7 +133,8 @@ async function invite() {
     toast.add({
       severity: 'error',
       summary: 'Ошибка',
-      detail: error?.response?.data?.message || error?.message || 'Не удалось отправить приглашение',
+      detail:
+        error?.response?.data?.message || error?.message || 'Не удалось отправить приглашение',
       life: 4000,
     });
   }

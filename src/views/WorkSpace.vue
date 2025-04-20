@@ -34,7 +34,6 @@ function chahgeView() {
     >
       <i v-show="close && !fullView" class="pi pi-bars icon" @click="chahgeView"></i>
       <i v-if="!close && !fullView" class="pi pi-times icon" @click="chahgeView"></i>
-      <!-- <FileTree v-if="(!close && !fullView) || true" /> -->
       <FileTree v-if="!close || fullView" />
     </div>
     <div class="main-component" :class="{ 'main-component--full': fullView }">

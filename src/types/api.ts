@@ -39,9 +39,7 @@ export interface CreateDatabaseRequest {
 }
 
 export interface CreateClusterConfigurationRequest {
-  additionalProp1: string;
-  additionalProp2: string;
-  additionalProp3: string;
+  [key: string]: string;
 }
 
 export interface CreateDatabaseUserRequest {
@@ -49,7 +47,7 @@ export interface CreateDatabaseUserRequest {
   password: string;
   database: string;
   roles: string[];
-  expiryDate: string;
+  expiryDate: string | null;
 }
 
 export interface CreateOrUpdateSecurityGroupDto {
@@ -91,10 +89,7 @@ export interface ResponseBackup {
   value: BackupData;
 }
 
-export interface ResponseCluster {
-  api_version: string;
-  value: ClusterData;
-}
+export type ResponseCluster = ClusterData;
 
 export interface ResponseDatabase {
   api_version: string;
@@ -106,10 +101,20 @@ export interface ResponselusterConfiguration {
   value: DatabaseData;
 }
 
-export interface ResponseDatabases {
-  api_version: string;
-  value: DatabaseData[];
+export interface ClusterConfigurationReadiness {
+  status: 'waiting' | 'ready';
+  failedParameters: string[] | null;
 }
+
+export interface ResponseClusterUser {
+  username: string;
+  roles: string[]; // массив строк, предполагается что роли — это строки
+  expiryDate: string | null; // может быть null или строкой (например, ISO-дата)
+}
+
+export type ResponseClusterUsers = ResponseClusterUser[];
+
+export type ResponseDatabases = string[];
 
 export interface ResponseSecurityGroup {
   api_version: string;
@@ -192,10 +197,18 @@ export interface ClusterData {
   syncReplicas: number | null;
 }
 
-
 export interface DatabaseData {
   // Данные о базе данных
 }
+
+export type ClusterConfiguration = ClusterConfigurationItem[];
+
+export type ClusterConfigurationItem = {
+  name: string;
+  type: 'text' | 'bool' | 'select';
+  options: string[] | null;
+  value: string | null;
+};
 
 export interface SecurityGroupData {
   id: number;

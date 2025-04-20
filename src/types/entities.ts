@@ -3,6 +3,19 @@ export interface User {
   email: string;
   role: number;
 }
+export interface ClusterUser {
+  username: string;
+  roles: string[];
+  expiryDate: string | null;
+}
+
+export interface CreateDatabaseUser {
+  username: string;
+  password: string;
+  database: string;
+  roles: string[];
+  expiryDate: string; // ISO 8601 формат даты-времени
+}
 
 export enum UserRole {
   ADMIN = 'admin',

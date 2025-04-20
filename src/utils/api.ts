@@ -24,6 +24,8 @@ import type {
   WorkspaceData,
   ResponseWorkspaces,
   SignupDto,
+  ClusterConfiguration,
+  ResponseClusterUsers,
 } from '@/types/api';
 import axios from 'axios';
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
@@ -268,8 +270,8 @@ export const createDatabaseUser = async (
 export const getDatabasesUsers = async (
   workspaceId: number,
   clusterId: number,
-): Promise<ResponseDatabases> => {
-  const response = await request<ResponseDatabases>(
+): Promise<ResponseClusterUsers> => {
+  const response = await request<ResponseClusterUsers>(
     'get',
     `/workspace/${workspaceId}/cluster/${clusterId}/users`,
   );
@@ -304,8 +306,8 @@ export const deleteDatabaseUser = async (
 export const getClusterConfiguration = async (
   workspaceId: number,
   clusterId: number,
-): Promise<ResponseDatabases> => {
-  const response = await request<ResponseDatabases>(
+): Promise<ClusterConfiguration> => {
+  const response = await request<ClusterConfiguration>(
     'get',
     `/workspace/${workspaceId}/cluster/${clusterId}/configuration`,
   );

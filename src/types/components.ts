@@ -11,6 +11,7 @@ export enum TypeModule {
   Space = 'Space',
   AddUser = 'AddUser',
   AddSecurityGroup = 'AddSecurityGroup',
+  ChangeCluster = 'ChangeCluster',
 }
 export enum SpacePage {
   Clusters = 'Clusters',

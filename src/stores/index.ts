@@ -5,7 +5,7 @@ import type {
   LoginResponseDto,
   SignupDto,
   WorkspaceData,
-  ClusterData, // 💡 не забудь импортировать тип кластера, если есть
+  ClusterData,
 } from '@/types/api';
 import { SpacePage, TypeModule, type Module } from '@/types/components';
 import {
@@ -13,7 +13,7 @@ import {
   createWorkspace,
   getWorkspaces,
   getWorkspace,
-  getClusters, // 👈 добавляем импорт функции getClusters
+  getClusters,
   loginRequest,
   signupRequest,
 } from '@/utils/api';
@@ -22,8 +22,8 @@ import { defineStore } from 'pinia';
 export const useRenderStore = defineStore('render', {
   state: () => ({
     isLoading: false as boolean,
-    centerModuleHistory: [TypeModule.Space] as TypeModule[],
     isFull: true as boolean,
+
     modules: [
       {
         type: TypeModule.Space,
@@ -54,14 +54,18 @@ export const useRenderStore = defineStore('render', {
         cluster: { name: 'fourth' },
       },
     ] as Module[],
+
+    // 💡 Новое поле истории типов модулей
+    moduleTypeHistory: [[], [], [], []] as TypeModule[][],
+
     user: null as LoginResponseDto | null,
     token: localStorage.getItem('token') || null,
 
     workspaces: [] as WorkspaceData[],
     currentWorkspaces: [{}, {}, {}, {}] as WorkspaceData[],
 
-    // 💡 Добавим clusters в стейт, чтобы было куда сохранять
     clusters: [[], [], [], []] as ClusterData[][],
+    singleClusters: [0, 0, 0, 0] as number[],
   }),
 
   actions: {
@@ -121,12 +125,11 @@ export const useRenderStore = defineStore('render', {
       }
     },
 
-    // 💡 Добавляем новую обёртку
     async fetchClusters(workspaceId: number, arrayWorkSpaceId: number) {
       try {
         const response = await getClusters(workspaceId);
         console.log('Кластеры загружены:', response);
-        this.clusters[arrayWorkSpaceId] = response; // ✅ сохраняем кластеры в state
+        this.clusters[arrayWorkSpaceId] = response;
       } catch (error) {
         console.error('Ошибка при получении кластеров:', error);
         throw error;
@@ -166,6 +169,21 @@ export const useRenderStore = defineStore('render', {
       } catch (error) {
         console.error('Ошибка при получении workspace:', error);
         throw error;
+      }
+    },
+
+    // === HISTORY ===
+
+    pushModuleTypeToHistory(moduleType: TypeModule, index: number = 0) {
+      if (!this.moduleTypeHistory[index]) {
+        this.moduleTypeHistory[index] = [];
+      }
+
+      const history = this.moduleTypeHistory[index];
+      const last = history[history.length - 1];
+
+      if (last !== moduleType) {
+        history.push(moduleType);
       }
     },
   },

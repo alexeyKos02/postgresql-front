@@ -57,7 +57,7 @@ watch(
     if (newId !== oldId) {
       fetchUsers(newId);
     }
-  }
+  },
 );
 </script>
 
@@ -78,11 +78,7 @@ watch(
         </div>
       </div>
 
-      <TableComponent
-        v-else
-        :users="users"
-        :functions="[remove]"
-      />
+      <TableComponent v-else :users="users" :functions="[remove]" />
     </ScrollPanel>
   </div>
 </template>

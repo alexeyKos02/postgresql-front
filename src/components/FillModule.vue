@@ -19,7 +19,7 @@ const workSpace = computed(() => store.workspaces[0]);
 <template>
   <transition name="fade">
     <ModuleComponent v-if="module.type === TypeModule.CreateCluster">
-      <ClusterComponent  :workspace-id="workSpace.id"/>
+      <ClusterComponent :workspace-id="workSpace.id" />
     </ModuleComponent>
   </transition>
   <transition name="fade">
@@ -39,7 +39,7 @@ const workSpace = computed(() => store.workspaces[0]);
   </transition>
   <transition name="fade">
     <ModuleComponent v-if="module.type === TypeModule.AddSecurityGroup" class="add-user-module">
-      <AddSecurityGroup class="add-user" :workspace-id="workSpace.id"/>
+      <AddSecurityGroup class="add-user" :workspace-id="workSpace.id" />
     </ModuleComponent>
   </transition>
 </template>

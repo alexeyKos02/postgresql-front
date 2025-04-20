@@ -46,9 +46,7 @@ async function remove(id: string) {
 
   try {
     await deleteSecurityGroup(props.workspaceId, numericId);
-    securityGroups.value = securityGroups.value.filter(
-      (group) => group.id !== numericId
-    );
+    securityGroups.value = securityGroups.value.filter((group) => group.id !== numericId);
     toast.add({
       severity: 'success',
       summary: 'Security Group удалена',
@@ -68,7 +66,6 @@ async function remove(id: string) {
 function action() {
   if (store.modules[0]) {
     store.modules[0].type = TypeModule.AddSecurityGroup;
-    store.centerModuleHistory = [...store.centerModuleHistory, TypeModule.AddSecurityGroup];
   }
 }
 
@@ -82,10 +79,9 @@ watch(
     if (newId !== oldId) {
       fetchSecurityGroups(newId);
     }
-  }
+  },
 );
 </script>
-
 
 <template>
   <div>
@@ -104,11 +100,7 @@ watch(
         </div>
       </div>
 
-      <TableComponent
-        v-else
-        :security-goups="securityGroups"
-        :functions="[remove]"
-      />
+      <TableComponent v-else :security-goups="securityGroups" :functions="[remove]" />
     </ScrollPanel>
   </div>
 </template>

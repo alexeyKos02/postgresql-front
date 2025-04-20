@@ -7,10 +7,23 @@ import SpaceModule from '@/components/module/pages/SpaceModule.vue';
 import ClusterInfo from './module/pages/ClusterInfo.vue';
 import AddUserPage from './module/pages/AddUserPage.vue';
 import AddSecurityGroup from './module/pages/AddSecurityGroup.vue';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
+import ChangeCluster from './module/pages/ChangeCluster.vue';
+
 const store = useRenderStore();
 const module = ref<Module | null>(store.modules[0]);
 const workSpace = computed(() => store.workspaces[0]);
+
+// Слежение за изменением module?.type и добавление в историю
+watch(
+  () => module.value?.type,
+  (newType, oldType) => {
+    if (newType && newType !== oldType) {
+      store.pushModuleTypeToHistory(newType, 0); // 0 — индекс центра
+    }
+  },
+  { immediate: true },
+);
 </script>
 
 <template>
@@ -26,7 +39,7 @@ const workSpace = computed(() => store.workspaces[0]);
   </transition>
   <transition name="fade">
     <ModuleComponent v-if="module?.type === TypeModule.ClusterInfo">
-      <ClusterInfo />
+      <ClusterInfo :workspace-id="workSpace.id" :module-id="module.location" />
     </ModuleComponent>
   </transition>
   <transition name="fade">
@@ -37,6 +50,11 @@ const workSpace = computed(() => store.workspaces[0]);
   <transition name="fade">
     <ModuleComponent v-if="module?.type === TypeModule.AddSecurityGroup" class="add-user-module">
       <AddSecurityGroup :workspace-id="workSpace.id" class="add-user" />
+    </ModuleComponent>
+  </transition>
+  <transition name="fade">
+    <ModuleComponent v-if="module?.type === TypeModule.ChangeCluster" class="add-user-module">
+      <ChangeCluster :workspace-id="workSpace.id" :module-id="module.location" class="add-user" />
     </ModuleComponent>
   </transition>
 </template>
@@ -50,12 +68,6 @@ const workSpace = computed(() => store.workspaces[0]);
 .fade-leave-to {
   opacity: 0;
 }
-.main-content {
-  margin-top: 5%;
-}
-h1 {
-  margin-top: 0;
-}
 .modal-header {
   display: flex;
   justify-content: space-between;
@@ -63,19 +75,10 @@ h1 {
   border-bottom: 2px solid #f0f0f0;
   padding-bottom: 10px;
 }
-.close-btn {
-  background: none;
-  border: none;
-  font-size: 24px;
-  color: #888;
-  cursor: pointer;
-}
 .add-user-module {
-  width: auto;
-  height: auto;
+  /* width: auto;
+  height: auto; */
   display: flex;
   justify-content: center;
-}
-.add-user {
 }
 </style>

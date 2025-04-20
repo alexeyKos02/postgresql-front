@@ -1,14 +1,17 @@
-<script lang="ts" setup>
+<script setup lang="ts">
+import { defineProps } from 'vue';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import Tag from 'primevue/tag';
 import { useRenderStore } from '@/stores';
 import { TypeModule } from '@/types/components';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { defineProps } from 'vue';
-import { UserRole, type SecurityGroup, type User } from '@/types/entities';
-import Tag from 'primevue/tag';
+import type { User, SecurityGroup } from '@/types/entities';
+import type { ResponseClusterUser } from '@/types/api';
 
 const props = defineProps<{
   users?: User[];
   securityGoups?: SecurityGroup[];
+  databases?: string[];
+  clusterUsers?: ResponseClusterUser[];
   functions?: ((id: string) => void)[];
 }>();
 
@@ -23,13 +26,13 @@ function openInfo() {
 
 <template>
   <div class="container">
-    <!-- Users -->
+    <!-- App Users -->
     <div v-for="user in props.users" :key="user.email" class="item" @click="openInfo">
       <div class="info">
         <span>{{ user.email }}</span>
-        <Tag severity="info" value="ADMIN" rounded v-if="user.role === 2" class="tag" />
-        <Tag severity="info" value="EDITOR" rounded v-if="user.role === 1" class="tag" />
-        <Tag severity="info" value="VIEWER" rounded v-if="user.role === 0" class="tag" />
+        <Tag v-if="user.role === 2" severity="info" value="ADMIN" rounded class="tag" />
+        <Tag v-if="user.role === 1" severity="info" value="EDITOR" rounded class="tag" />
+        <Tag v-if="user.role === 0" severity="info" value="VIEWER" rounded class="tag" />
       </div>
       <button class="btn-icon" @click.stop="props.functions?.[0]?.(user.email)">
         <FontAwesomeIcon icon="fa-solid fa-trash" />
@@ -45,22 +48,58 @@ function openInfo() {
         <FontAwesomeIcon icon="fa-solid fa-trash" />
       </button>
     </div>
+
+    <!-- Databases -->
+    <div v-for="(db, index) in props.databases" :key="index" class="item">
+      <div class="info">
+        <FontAwesomeIcon icon="fa-solid fa-database" />
+        <span>{{ db }}</span>
+      </div>
+      <button class="btn-icon" @click.stop="props.functions?.[0]?.(db)">
+        <FontAwesomeIcon icon="fa-solid fa-trash" />
+      </button>
+    </div>
+
+    <!-- Cluster Users -->
+    <div v-for="(user, index) in props.clusterUsers" :key="index" class="item">
+      <div class="info">
+        <FontAwesomeIcon icon="fa-solid fa-user" />
+        <span>{{ user.username }}</span>
+
+        <Tag
+          v-if="user.expiryDate"
+          severity="warning"
+          :value="`до ${new Date(user.expiryDate).toLocaleDateString()}`"
+          rounded
+          class="tag"
+        />
+
+        <Tag
+          v-if="user.roles?.length"
+          severity="success"
+          :value="user.roles.join(', ')"
+          rounded
+          class="tag"
+        />
+      </div>
+      <button class="btn-icon" @click.stop="props.functions?.[0]?.(user.username)">
+        <FontAwesomeIcon icon="fa-solid fa-trash" />
+      </button>
+    </div>
   </div>
 </template>
 
 <style scoped lang="scss">
-/* 🌿 Фон всей области */
 .container {
   display: flex;
   flex-direction: column;
   width: 100%;
   gap: 12px;
-  background-color: #f7f9fb; /* светлый фон */
+  background-color: #f7f9fb;
   padding: 16px;
   border-radius: 8px;
 }
 
-/* 🧩 Карточка элемента */
 .item {
   display: flex;
   justify-content: space-between;
@@ -93,11 +132,10 @@ function openInfo() {
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 220px;
-    color: #1f2937; /* чуть темнее для лучшего контраста */
+    color: #1f2937;
   }
 }
 
-/* 🗑 Кнопка удаления */
 .btn-icon {
   display: flex;
   align-items: center;
@@ -108,7 +146,9 @@ function openInfo() {
   cursor: pointer;
   color: #e74c3c;
   border-radius: 50%;
-  transition: background-color 0.2s ease, transform 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease;
 
   &:hover {
     background-color: rgba(231, 76, 60, 0.12);
@@ -120,7 +160,6 @@ function openInfo() {
   }
 }
 
-/* 🎖 Тег роли */
 .tag {
   font-size: 12px;
   padding: 2px 8px;

@@ -1,122 +1,168 @@
 <script lang="ts" setup>
 import { useRenderStore } from '@/stores';
-import { computed, ref } from 'vue';
+import { ref, computed } from 'vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { TypeModule } from '@/types/components';
 
 const store = useRenderStore();
+
 const isFull = computed(() => store.isFull);
-// const moduleType = ref<string>('divide');
-const goingBack = computed(() => {
-  if (isFull.value) {
-    return store.centerModuleHistory.length > 1;
-  }
-  return 0;
-});
-const backAction = () => {
-  // if (store.centerModule?.isActive) {
-  //   store.centerModule.type = store.centerModuleHistory[store.centerModuleHistory.length - 2];
-  //   store.centerModuleHistory.pop();
-  // }
+const panelOpen = ref(false);
+
+const togglePanel = () => {
+  panelOpen.value = !panelOpen.value;
 };
+
+const goingBack = computed(() => {
+  return isFull.value && store.moduleTypeHistory[0]?.length > 1;
+});
+
+const backAction = () => {
+  const history = store.moduleTypeHistory[0];
+  if (history.length > 1) {
+    history.pop();
+    const previous = history[history.length - 1];
+    store.modules[0].type = previous;
+  }
+};
+
 const closeModal = () => {
-  // if (store.centerModule) {
-  //   store.centerModule.isActive = false;
-  // }
+  const centerModule = store.modules[0];
+  if (centerModule) {
+    centerModule.isActive = false;
+    centerModule.type = TypeModule.Space;
+    store.moduleTypeHistory[0] = [];
+    panelOpen.value = false;
+  }
 };
 </script>
 
 <template>
-  <div style="height: 100%">
-    <div class="control-panel" v-if="false">
-      <FontAwesomeIcon
-        v-if="goingBack"
-        icon="fa-solid fa-circle-arrow-left"
-        class="back-btn"
-        @click="backAction"
-      />
-      <FontAwesomeIcon icon="fa-solid fa-circle-xmark" class="close-btn" @click="closeModal" />
-    </div>
+  <div v-if="store.modules[0]?.isActive" class="wrapper">
     <div class="module" :class="{ 'module--center': isFull }">
-      <slot></slot>
+      <!-- 🌟 Кнопка-шестерёнка -->
+      <div class="toggle-button" @click="togglePanel">
+        <FontAwesomeIcon icon="fa-solid fa-gear" />
+      </div>
+
+      <!-- ⚙️ Панель управления -->
+      <transition name="slide-fade">
+        <div v-if="panelOpen" class="floating-panel">
+          <FontAwesomeIcon
+            v-if="goingBack"
+            icon="fa-solid fa-circle-arrow-left"
+            class="icon-button back-btn"
+            @click="backAction"
+          />
+          <FontAwesomeIcon
+            icon="fa-solid fa-circle-xmark"
+            class="icon-button close-btn"
+            @click="closeModal"
+          />
+        </div>
+      </transition>
+
+      <!-- Контент -->
+      <slot />
     </div>
   </div>
 </template>
-<style lang="scss" scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.1s ease;
+
+<style scoped lang="scss">
+.wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
 }
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
+
 .module {
   display: flex;
   flex-direction: column;
   overflow: scroll;
-  // margin-left: 1vw;
   width: 100%;
   height: 100%;
   padding: 2% 3%;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Добавляет тень */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+
   &--center {
     height: 95%;
-    // position: absolute;
-    // top: 50%;
-    // left: 50%;
-    // transform: translate(-50%, -50%);
     width: 100%;
     margin-left: 1vw;
-    // height: 70%;
-    border-radius: 10px; /* Скругляет углы */
-    // background-color: #f4f4f5;
+    border-radius: 10px;
+    background-color: white;
   }
 }
-// .close-btn {
-//   background: none;
-//   border: none;
-//   font-size: 24px;
-//   color: #888;
-//   cursor: pointer;
-//   border-radius: 50%;
-// }
-.back-btn,
-.close-btn {
-  width: 1vw;
-  height: 1vw;
+
+/* 🔘 Кнопка переключения */
+.toggle-button {
+  position: absolute;
+  top: 24px;
+  right: 8px;
+  width: 36px;
+  height: 36px;
+  background-color: #3498db;
+  color: white;
   border-radius: 50%;
   display: flex;
+  align-items: center;
   justify-content: center;
-  align-items: center;
-  border: none;
   cursor: pointer;
-  font-size: 24px;
+  z-index: 1000;
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    background-color: #2980b9;
+  }
 }
 
-.back-btn {
-  background-color: yellow; /* Желтая кнопка */
-}
-
-.close-btn {
-  background-color: red; /* Красная кнопка */
-}
-.control-panel {
+/* ⚙️ Панель управления */
+.floating-panel {
   position: absolute;
-  top: 16%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 70%;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 0.1vw;
-  background: grey;
+  top: 72px;
+  right: 8px;
+  background-color: #f4f4f4;
+  padding: 10px;
+  border-radius: 12px;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.15);
   z-index: 999;
-  padding-top: 3px;
-  padding-bottom: 3px;
-  padding-left: 4px;
-  border-radius: 10px 10px 0 0;
-  box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.icon-button {
+  width: 36px;
+  height: 36px;
+  font-size: 16px;
+  border-radius: 50%;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+
+  &.back-btn {
+    background-color: #f1c40f;
+  }
+
+  &.close-btn {
+    background-color: #e74c3c;
+  }
+
+  &:hover {
+    filter: brightness(1.1);
+    transform: scale(1.05);
+  }
+}
+
+/* 🎞 Анимация появления */
+.slide-fade-enter-active,
+.slide-fade-leave-active {
+  transition: all 0.3s ease;
+}
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+  opacity: 0;
+  transform: translateX(20%);
 }
 </style>
