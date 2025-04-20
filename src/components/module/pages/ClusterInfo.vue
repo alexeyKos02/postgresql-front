@@ -121,7 +121,8 @@
               <div class="db-field">
                 <label>Дата истечения</label>
                 <Calendar
-                  v-model="newUser.expiryDate"
+                  :modelValue="newUser.expiryDate ? new Date(newUser.expiryDate) : null"
+                  @update:modelValue="(value) => (newUser.expiryDate = value?.toString() || '')"
                   showIcon
                   showTime
                   hourFormat="24"
@@ -141,7 +142,6 @@
     </transition>
   </div>
 </template>
-
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
@@ -336,7 +336,6 @@ function generatePassword() {
 }
 </script>
 
-
 <style scoped lang="scss">
 .cluster-details {
   padding-bottom: 40px;
@@ -467,7 +466,9 @@ function generatePassword() {
   padding: 6px;
   border-radius: 50%;
   cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease;
   font-size: 14px;
 
   &.red {

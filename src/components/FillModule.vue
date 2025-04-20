@@ -29,7 +29,7 @@ const workSpace = computed(() => store.workspaces[0]);
   </transition>
   <transition name="fade">
     <ModuleComponent v-if="module.type === TypeModule.ClusterInfo">
-      <ClusterInfo />
+      <ClusterInfo :workspace-id="workSpace.id" :module-id="module.location" />
     </ModuleComponent>
   </transition>
   <transition name="fade">

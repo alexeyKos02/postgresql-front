@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue';
-import { UserRole, type User } from '@/types/entities';
+import { type User } from '@/types/entities';
 import TableComponent from '../TableComponent.vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import ScrollPanel from 'primevue/scrollpanel';
@@ -43,7 +43,6 @@ function remove(id: string) {
 function action() {
   if (store.modules[0]) {
     store.modules[0].type = TypeModule.AddUser;
-    store.centerModuleHistory = [...store.centerModuleHistory, TypeModule.AddUser];
   }
 }
 

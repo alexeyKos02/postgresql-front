@@ -1,3 +1,61 @@
+<template>
+  <div class="icon" @click="action">
+    <FontAwesomeIcon icon="fa-solid fa-plus" />
+  </div>
+
+  <ScrollPanel class="clusters-scroll-panel">
+    <div v-if="currentClusters.length === 0" class="empty-state">
+      <FontAwesomeIcon icon="fa-solid fa-database" class="empty-icon" />
+      <p class="empty-title">Нет доступных кластеров</p>
+      <p class="empty-subtitle">Создайте первый кластер с помощью кнопки "+" выше</p>
+    </div>
+
+    <div v-else class="clusters-grid">
+      <div
+        v-for="cluster in currentClusters"
+        :key="cluster.systemName"
+        class="cluster-card"
+        :class="{
+          updated: cluster.id === updatedClusterId,
+          waiting: cluster.status === 1,
+        }"
+        @click="showClusterInfo(cluster.id)"
+      >
+        <div class="card-header">
+          <div class="name-section">
+            <FontAwesomeIcon icon="fa-solid fa-database" class="card-icon" />
+            <span class="cluster-name">{{ cluster.systemName }}</span>
+          </div>
+          <div class="owner-badge">
+            <div class="owner-avatar">
+              <FontAwesomeIcon icon="fa-solid fa-user" />
+            </div>
+            <span class="owner-name">{{ cluster.ownerName }}</span>
+          </div>
+        </div>
+
+        <div class="card-footer">
+          <span class="status-badge" :class="getStatusInfo(cluster.status).class">
+            {{ getStatusInfo(cluster.status).label }}
+          </span>
+
+          <div class="btns-panel">
+            <button class="btn-icon green" @click.stop="reload(cluster.systemName)">
+              <FontAwesomeIcon icon="fa-solid fa-rotate-right" />
+            </button>
+            <button class="btn-icon red" @click.stop="remove(cluster.systemName)">
+              <FontAwesomeIcon icon="fa-solid fa-trash" />
+            </button>
+            <button class="btn-icon blue" @click.stop="edit(cluster.id)">
+              <FontAwesomeIcon icon="fa-solid fa-pen" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ScrollPanel>
+</template>
+
 <script setup lang="ts">
 import { onMounted, onUnmounted, computed, watch, ref } from 'vue';
 import { TypeModule } from '@/types/components';
@@ -36,7 +94,7 @@ async function fetchClusters() {
 
 onMounted(() => {
   fetchClusters();
-  intervalId.value = setInterval(fetchClusters, 1000);
+  intervalId.value = window.setInterval(fetchClusters, 1000);
 });
 
 onUnmounted(() => {
@@ -117,64 +175,6 @@ function getStatusInfo(status: number) {
   }
 }
 </script>
-
-<template>
-  <div class="icon" @click="action">
-    <FontAwesomeIcon icon="fa-solid fa-plus" />
-  </div>
-
-  <ScrollPanel class="clusters-scroll-panel">
-    <div v-if="currentClusters.length === 0" class="empty-state">
-      <FontAwesomeIcon icon="fa-solid fa-database" class="empty-icon" />
-      <p class="empty-title">Нет доступных кластеров</p>
-      <p class="empty-subtitle">Создайте первый кластер с помощью кнопки "+" выше</p>
-    </div>
-
-    <div v-else class="clusters-grid">
-      <div
-        v-for="cluster in currentClusters"
-        :key="cluster.systemName"
-        class="cluster-card"
-        :class="{
-          updated: cluster.id === updatedClusterId,
-          waiting: cluster.status === 1,
-        }"
-        @click="showClusterInfo(cluster.id)"
-      >
-        <div class="card-header">
-          <div class="name-section">
-            <FontAwesomeIcon icon="fa-solid fa-database" class="card-icon" />
-            <span class="cluster-name">{{ cluster.systemName }}</span>
-          </div>
-          <div class="owner-badge">
-            <div class="owner-avatar">
-              <FontAwesomeIcon icon="fa-solid fa-user" />
-            </div>
-            <span class="owner-name">{{ cluster.ownerName }}</span>
-          </div>
-        </div>
-
-        <div class="card-footer">
-          <span class="status-badge" :class="getStatusInfo(cluster.status).class">
-            {{ getStatusInfo(cluster.status).label }}
-          </span>
-
-          <div class="btns-panel">
-            <button class="btn-icon green" @click.stop="reload(cluster.systemName)">
-              <FontAwesomeIcon icon="fa-solid fa-rotate-right" />
-            </button>
-            <button class="btn-icon red" @click.stop="remove(cluster.systemName)">
-              <FontAwesomeIcon icon="fa-solid fa-trash" />
-            </button>
-            <button class="btn-icon blue" @click.stop="edit(cluster.id)">
-              <FontAwesomeIcon icon="fa-solid fa-pen" />
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </ScrollPanel>
-</template>
 
 <style scoped lang="scss">
 .icon {

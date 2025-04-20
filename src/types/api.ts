@@ -115,6 +115,10 @@ export interface ResponseClusterUser {
 export type ResponseClusterUsers = ResponseClusterUser[];
 
 export type ResponseDatabases = string[];
+export type ResposeReadiness = {
+  status: 'success' | 'error' | 'ready';
+  failedParameters: string[] | null;
+};
 
 export interface ResponseSecurityGroup {
   api_version: string;

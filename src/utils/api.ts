@@ -26,6 +26,7 @@ import type {
   SignupDto,
   ClusterConfiguration,
   ResponseClusterUsers,
+  ResposeReadiness,
 } from '@/types/api';
 import axios from 'axios';
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
@@ -331,8 +332,8 @@ export const createClusterConfiguration = async (
 export const getClusterConfigurationReadiness = async (
   workspaceId: number,
   clusterId: number,
-): Promise<ResponseDatabases> => {
-  const response = await request<ResponseDatabases>(
+): Promise<ResposeReadiness> => {
+  const response = await request<ResposeReadiness>(
     'get',
     `/workspace/${workspaceId}/cluster/${clusterId}/configuration/readiness`,
   );
