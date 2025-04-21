@@ -5,7 +5,7 @@ import Tag from 'primevue/tag';
 import { useRenderStore } from '@/stores';
 import { TypeModule } from '@/types/components';
 import type { User, SecurityGroup } from '@/types/entities';
-import type { ResponseClusterUser } from '@/types/api';
+import type { DeadlockStat, ResponseClusterUser } from '@/types/api';
 
 const props = defineProps<{
   users?: User[];
@@ -13,6 +13,7 @@ const props = defineProps<{
   databases?: string[];
   clusterUsers?: ResponseClusterUser[];
   functions?: ((id: string) => void)[];
+  deadlocks?: DeadlockStat[];
 }>();
 
 const store = useRenderStore();
@@ -86,6 +87,14 @@ function openInfo() {
         <FontAwesomeIcon icon="fa-solid fa-trash" />
       </button>
     </div>
+    <!-- Deadlocks -->
+    <div v-for="(item, index) in props.deadlocks" :key="index" class="item">
+        <div class="info">
+          <FontAwesomeIcon icon="fa-solid fa-bolt" />
+          <span>{{ item.database }}</span>
+          <Tag :value="`${item.deadlockCount}`" severity="danger" rounded class="tag" />
+        </div>
+      </div>
   </div>
 </template>
 
@@ -163,5 +172,23 @@ function openInfo() {
 .tag {
   font-size: 12px;
   padding: 2px 8px;
+}
+.scroll-section {
+  max-height: 260px;
+  overflow-y: auto;
+  padding-right: 4px;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: #c4c4c4;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background-color: transparent;
+  }
 }
 </style>

@@ -171,10 +171,10 @@
     <transition name="fade">
       <div v-if="expandedQueries" class="details-card">
         <div v-if="loadingQueries">
-  <div class="query-skeletons">
-    <Skeleton v-for="n in 5" :key="n" height="40px" class="skeleton-row" />
-  </div>
-</div>
+          <div class="query-skeletons">
+            <Skeleton v-for="n in 5" :key="n" height="40px" class="skeleton-row" />
+          </div>
+        </div>
         <div v-else>
           <!-- Поиск -->
           <div class="query-search-wrapper">
@@ -182,24 +182,23 @@
           </div>
 
           <div class="query-export-buttons">
-  <Button
-    label="CSV"
-    icon="pi pi-file-excel"
-    severity="success"
-    outlined
-    class="pretty-export-btn"
-    @click="exportToCSV"
-  />
-  <Button
-    label="JSON"
-    icon="pi pi-code"
-    severity="info"
-    outlined
-    class="pretty-export-btn"
-    @click="exportToJSON"
-  />
-</div>
-
+            <Button
+              label="CSV"
+              icon="pi pi-file-excel"
+              severity="success"
+              outlined
+              class="pretty-export-btn"
+              @click="exportToCSV"
+            />
+            <Button
+              label="JSON"
+              icon="pi pi-code"
+              severity="info"
+              outlined
+              class="pretty-export-btn"
+              @click="exportToJSON"
+            />
+          </div>
 
           <!-- Таблица запросов -->
           <table class="monitor-table">
@@ -217,9 +216,13 @@
             <tbody>
               <tr v-for="(query, index) in filteredQueries" :key="index">
                 <td class="query-cell">
-                  <button class="copy-btn" @click.stop="copyQuery(query.query)" v-tooltip="'Скопировать запрос'">
-    <FontAwesomeIcon icon="fa-solid fa-copy" />
-  </button>
+                  <button
+                    class="copy-btn"
+                    @click.stop="copyQuery(query.query)"
+                    v-tooltip="'Скопировать запрос'"
+                  >
+                    <FontAwesomeIcon icon="fa-solid fa-copy" />
+                  </button>
                   <div class="query-preview">
                     <span
                       class="query-text"
@@ -269,6 +272,22 @@
         </div>
       </div>
     </transition>
+    <!-- Deadlocks -->
+    <div class="header-toggle" style="margin-top: 32px">
+      <h1 class="page-title">Deadlocks</h1>
+      <button class="toggle-btn" @click="expandedDeadlocks = !expandedDeadlocks">
+        {{ expandedDeadlocks ? 'Скрыть' : 'Показать' }}
+      </button>
+    </div>
+
+    <transition name="fade">
+      <div v-if="expandedDeadlocks">
+        <div v-if="loadingDeadlocks" class="loading-text">Загрузка...</div>
+        <div class="table-scroll">
+          <TableComponent :deadlocks="deadlocks" />
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -284,13 +303,19 @@ import {
   getDatabasesRoles,
   getMonitoringDashboard,
   getMonitoringTopQueries,
+  getMonitoringDeadlocks,
 } from '@/utils/api';
 import { useRenderStore } from '@/stores';
 import { storeToRefs } from 'pinia';
 import TableComponent from '../TableComponent.vue';
 import Dropdown from 'primevue/dropdown';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import type { ResponseCluster, CreateDatabaseRequest, TopQueryStat } from '@/types/api';
+import type {
+  ResponseCluster,
+  CreateDatabaseRequest,
+  TopQueryStat,
+  DeadlockStat,
+} from '@/types/api';
 import type { ClusterUser, CreateDatabaseUser } from '@/types/entities';
 import InputText from 'primevue/inputtext';
 import Password from 'primevue/password';
@@ -329,6 +354,10 @@ const topQueries = ref<TopQueryStat[]>([]);
 
 const querySearch = ref('');
 const expandedQueriesIndex = ref<number[]>([]);
+
+const expandedDeadlocks = ref(false);
+const loadingDeadlocks = ref(false);
+const deadlocks = ref<DeadlockStat[]>([]);
 
 const newDatabase = ref<CreateDatabaseRequest>({
   database: '',
@@ -399,6 +428,20 @@ watch(expandedMonitoring, async (opened) => {
       dashboardUrl.value = link;
     } catch (err) {
       console.error('Ошибка загрузки Grafana dashboard:', err);
+    }
+  }
+});
+
+watch(expandedDeadlocks, async (opened) => {
+  if (opened && cluster.value && deadlocks.value.length === 0) {
+    loadingDeadlocks.value = true;
+    try {
+      deadlocks.value = await getMonitoringDeadlocks(props.workspaceId, cluster.value.id);
+    } catch (err) {
+      console.error('Ошибка загрузки deadlocks:', err);
+      deadlocks.value = [];
+    } finally {
+      loadingDeadlocks.value = false;
     }
   }
 });
@@ -520,24 +563,40 @@ function generatePassword() {
   ).join('');
 }
 function copyQuery(text: string) {
-  navigator.clipboard.writeText(text).then(() => {
-  }).catch((err) => {
-    console.error('Ошибка копирования:', err);
-    toast.add({
-      severity: 'error',
-      summary: 'Ошибка',
-      detail: 'Не удалось скопировать',
-      life: 3000,
+  navigator.clipboard
+    .writeText(text)
+    .then(() => {})
+    .catch((err) => {
+      console.error('Ошибка копирования:', err);
+      toast.add({
+        severity: 'error',
+        summary: 'Ошибка',
+        detail: 'Не удалось скопировать',
+        life: 3000,
+      });
     });
-  });
 }
 
 function exportToCSV() {
-  const header = ['Запрос', 'Всего вызовов', 'Среднее время', 'Ст. отклонение', 'Строк', 'Shared Hit', 'Shared Read'];
-  const rows = filteredQueries.value.map(q => [
-    `"${q.query.replace(/"/g, '""')}"`, q.calls, q.meanExecTime, q.stddevExecTime, q.rows, q.sharedBlocksHit, q.sharedBlocksRead
+  const header = [
+    'Запрос',
+    'Всего вызовов',
+    'Среднее время',
+    'Ст. отклонение',
+    'Строк',
+    'Shared Hit',
+    'Shared Read',
+  ];
+  const rows = filteredQueries.value.map((q) => [
+    `"${q.query.replace(/"/g, '""')}"`,
+    q.calls,
+    q.meanExecTime,
+    q.stddevExecTime,
+    q.rows,
+    q.sharedBlocksHit,
+    q.sharedBlocksRead,
   ]);
-  const csvContent = [header, ...rows].map(e => e.join(',')).join('\n');
+  const csvContent = [header, ...rows].map((e) => e.join(',')).join('\n');
   downloadFile(csvContent, 'top_queries.csv', 'text/csv');
 }
 
@@ -553,7 +612,6 @@ function downloadFile(content: string, filename: string, type: string) {
   link.download = filename;
   link.click();
 }
-
 </script>
 
 <style scoped lang="scss">
@@ -934,7 +992,8 @@ function downloadFile(content: string, filename: string, type: string) {
       }
     }
   }
-}.copy-btn {
+}
+.copy-btn {
   background: none;
   border: none;
   font-size: 14px;
@@ -981,7 +1040,13 @@ function downloadFile(content: string, filename: string, type: string) {
 .skeleton-row {
   border-radius: 8px;
 }
-
+.table-scroll {
+  overflow-x: auto;
+  width: 100%;
+  max-width: 100%;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
 </style>
 
 <style>
