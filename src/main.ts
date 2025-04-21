@@ -19,6 +19,9 @@ import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { faCircleArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { faCircleXmark } from '@fortawesome/free-solid-svg-icons';
 import { faGear } from '@fortawesome/free-solid-svg-icons';
+import { faChevronUp } from '@fortawesome/free-solid-svg-icons';
+import { faChevronDown } from '@fortawesome/free-solid-svg-icons';
+import { faCopy } from '@fortawesome/free-solid-svg-icons';
 import Aura from '@primevue/themes/aura';
 import { definePreset } from '@primevue/themes';
 import 'primeicons/primeicons.css';
@@ -36,6 +39,9 @@ library.add(
   faCircleArrowLeft,
   faCircleXmark,
   faGear,
+  faChevronUp,
+  faChevronDown,
+  faCopy,
 );
 
 const app = createApp(App);

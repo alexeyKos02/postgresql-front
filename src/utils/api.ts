@@ -29,6 +29,7 @@ import type {
   ResposeReadiness,
   ResponseDashboard,
   ResponseTopQueries,
+  DeadlockStat,
 } from '@/types/api';
 import axios from 'axios';
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
@@ -363,7 +364,16 @@ export const getMonitoringTopQueries = async (
   );
   return response.data;
 };
-
+export const getMonitoringDeadlocks = async (
+  workspaceId: number,
+  clusterId: number,
+): Promise<DeadlockStat[]> => {
+  const response = await request<DeadlockStat[]>(
+    'get',
+    `/workspace/${workspaceId}/cluster/${clusterId}/monitoring/deadlocks`,
+  );
+  return response.data;
+};
 // === Security Groups ===
 
 export const createSecurityGroup = async (

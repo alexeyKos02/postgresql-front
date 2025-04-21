@@ -136,6 +136,11 @@ export interface TopQueryStat {
 
 export type ResponseTopQueries = TopQueryStat[];
 
+export interface DeadlockStat {
+  database: string;
+  deadlockCount: number;
+}
+
 export interface ResponseSecurityGroup {
   api_version: string;
   value: SecurityGroupData;

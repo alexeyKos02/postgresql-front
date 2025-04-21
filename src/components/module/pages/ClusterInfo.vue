@@ -170,12 +170,36 @@
 
     <transition name="fade">
       <div v-if="expandedQueries" class="details-card">
-        <div v-if="loadingQueries" class="loading-text">Загрузка запросов...</div>
+        <div v-if="loadingQueries">
+  <div class="query-skeletons">
+    <Skeleton v-for="n in 5" :key="n" height="40px" class="skeleton-row" />
+  </div>
+</div>
         <div v-else>
           <!-- Поиск -->
           <div class="query-search-wrapper">
             <InputText v-model="querySearch" placeholder="Поиск по SQL..." class="query-search" />
           </div>
+
+          <div class="query-export-buttons">
+  <Button
+    label="CSV"
+    icon="pi pi-file-excel"
+    severity="success"
+    outlined
+    class="pretty-export-btn"
+    @click="exportToCSV"
+  />
+  <Button
+    label="JSON"
+    icon="pi pi-code"
+    severity="info"
+    outlined
+    class="pretty-export-btn"
+    @click="exportToJSON"
+  />
+</div>
+
 
           <!-- Таблица запросов -->
           <table class="monitor-table">
@@ -193,13 +217,16 @@
             <tbody>
               <tr v-for="(query, index) in filteredQueries" :key="index">
                 <td class="query-cell">
+                  <button class="copy-btn" @click.stop="copyQuery(query.query)" v-tooltip="'Скопировать запрос'">
+    <FontAwesomeIcon icon="fa-solid fa-copy" />
+  </button>
                   <div class="query-preview">
                     <span
                       class="query-text"
                       :class="{ 'is-expandable': isExpandable(query.query) }"
                       @click="toggleQuery(index)"
                     >
-                      <transition name="query-slide">
+                      <transition v-if="isExpandable(query.query)" name="query-slide">
                         <pre v-if="expandedQueriesIndex.includes(index)">
     {{ query.query }}
   </pre
@@ -209,6 +236,11 @@
   </pre
                         >
                       </transition>
+
+                      <pre v-else>
+  {{ query.query }}
+</pre
+                      >
                     </span>
                     <button
                       v-if="isExpandable(query.query)"
@@ -262,13 +294,17 @@ import type { ResponseCluster, CreateDatabaseRequest, TopQueryStat } from '@/typ
 import type { ClusterUser, CreateDatabaseUser } from '@/types/entities';
 import InputText from 'primevue/inputtext';
 import Password from 'primevue/password';
+import Button from 'primevue/button';
 import MultiSelect from 'primevue/multiselect';
+import Skeleton from 'primevue/skeleton';
 import Calendar from 'primevue/calendar';
+import { useToast } from 'primevue';
 const props = defineProps<{
   workspaceId: number;
   moduleId: number;
 }>();
 
+const toast = useToast();
 const store = useRenderStore();
 const { singleClusters } = storeToRefs(store);
 
@@ -483,6 +519,41 @@ function generatePassword() {
     () => chars[Math.floor(Math.random() * chars.length)],
   ).join('');
 }
+function copyQuery(text: string) {
+  navigator.clipboard.writeText(text).then(() => {
+  }).catch((err) => {
+    console.error('Ошибка копирования:', err);
+    toast.add({
+      severity: 'error',
+      summary: 'Ошибка',
+      detail: 'Не удалось скопировать',
+      life: 3000,
+    });
+  });
+}
+
+function exportToCSV() {
+  const header = ['Запрос', 'Всего вызовов', 'Среднее время', 'Ст. отклонение', 'Строк', 'Shared Hit', 'Shared Read'];
+  const rows = filteredQueries.value.map(q => [
+    `"${q.query.replace(/"/g, '""')}"`, q.calls, q.meanExecTime, q.stddevExecTime, q.rows, q.sharedBlocksHit, q.sharedBlocksRead
+  ]);
+  const csvContent = [header, ...rows].map(e => e.join(',')).join('\n');
+  downloadFile(csvContent, 'top_queries.csv', 'text/csv');
+}
+
+function exportToJSON() {
+  const json = JSON.stringify(filteredQueries.value, null, 2);
+  downloadFile(json, 'top_queries.json', 'application/json');
+}
+
+function downloadFile(content: string, filename: string, type: string) {
+  const blob = new Blob([content], { type });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.click();
+}
+
 </script>
 
 <style scoped lang="scss">
@@ -817,36 +888,15 @@ function generatePassword() {
 }
 
 .query-cell {
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  &:hover {
-    background-color: #f4f4f4;
-  }
-}
-
-.expand-enter-active,
-.expand-leave-active {
-  transition:
-    max-height 0.3s ease,
-    opacity 0.3s ease;
-  overflow: hidden;
-}
-
-.expand-enter-from,
-.expand-leave-to {
-  max-height: 0;
-  opacity: 0;
-}
-
-.expand-enter-to,
-.expand-leave-from {
-  max-height: 300px;
-  opacity: 1;
-}
-.query-cell {
   position: relative;
   padding-right: 40px;
   font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    background-color: #f4f4f4;
+  }
 
   .query-preview {
     display: flex;
@@ -884,24 +934,54 @@ function generatePassword() {
       }
     }
   }
+}.copy-btn {
+  background: none;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  color: #888;
+  margin-left: 4px;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: #1f6feb;
+  }
+}
+.query-export-buttons {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  margin-top: 8px;
 }
 
-.query-expand-enter-active,
-.query-expand-leave-active {
-  transition: all 0.3s ease;
+.pretty-export-btn {
+  border-radius: 10px !important;
+  padding: 0.5rem 1.2rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  font-weight: 500;
+  font-size: 14px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    transform: translateY(-1px);
+  }
+
+  .pi {
+    font-size: 1rem;
+  }
+}
+.query-skeletons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
 }
 
-.query-expand-enter-from,
-.query-expand-leave-to {
-  opacity: 0;
-  max-height: 0;
+.skeleton-row {
+  border-radius: 8px;
 }
 
-.query-expand-enter-to,
-.query-expand-leave-from {
-  opacity: 1;
-  max-height: 600px;
-}
 </style>
 
 <style>
