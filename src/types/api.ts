@@ -119,6 +119,22 @@ export type ResposeReadiness = {
   status: 'success' | 'error' | 'ready';
   failedParameters: string[] | null;
 };
+export interface ResponseDashboard {
+  link: string;
+}
+
+export interface TopQueryStat {
+  query: string;
+  totalExecTime: number;
+  calls: number;
+  meanExecTime: number;
+  stddevExecTime: number;
+  rows: number;
+  sharedBlocksHit: number;
+  sharedBlocksRead: number;
+}
+
+export type ResponseTopQueries = TopQueryStat[];
 
 export interface ResponseSecurityGroup {
   api_version: string;

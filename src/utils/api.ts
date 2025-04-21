@@ -27,6 +27,8 @@ import type {
   ClusterConfiguration,
   ResponseClusterUsers,
   ResposeReadiness,
+  ResponseDashboard,
+  ResponseTopQueries,
 } from '@/types/api';
 import axios from 'axios';
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
@@ -336,6 +338,28 @@ export const getClusterConfigurationReadiness = async (
   const response = await request<ResposeReadiness>(
     'get',
     `/workspace/${workspaceId}/cluster/${clusterId}/configuration/readiness`,
+  );
+  return response.data;
+};
+
+export const getMonitoringDashboard = async (
+  workspaceId: number,
+  clusterId: number,
+): Promise<ResponseDashboard> => {
+  const response = await request<ResponseDashboard>(
+    'get',
+    `/workspace/${workspaceId}/cluster/${clusterId}/monitoring/dashboard`,
+  );
+  return response.data;
+};
+// utils/api.ts
+export const getMonitoringTopQueries = async (
+  workspaceId: number,
+  clusterId: number,
+): Promise<ResponseTopQueries> => {
+  const response = await request<ResponseTopQueries>(
+    'get',
+    `/workspace/${workspaceId}/cluster/${clusterId}/monitoring/top-queries`,
   );
   return response.data;
 };

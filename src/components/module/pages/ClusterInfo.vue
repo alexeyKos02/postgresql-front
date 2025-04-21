@@ -140,6 +140,103 @@
         <TableComponent :clusterUsers="users" />
       </div>
     </transition>
+
+    <!-- Мониторинг -->
+    <div class="header-toggle">
+      <h1 class="page-title">Мониторинг</h1>
+      <button class="toggle-btn" @click="expandedMonitoring = !expandedMonitoring">
+        {{ expandedMonitoring ? 'Скрыть' : 'Показать' }}
+      </button>
+    </div>
+
+    <transition name="fade">
+      <div v-if="expandedMonitoring && dashboardUrl" class="monitoring-iframe-wrapper">
+        <iframe
+          :src="dashboardUrl"
+          width="100%"
+          height="700"
+          frameborder="0"
+          class="grafana-iframe"
+        />
+      </div>
+    </transition>
+    <!-- Топ запросов -->
+    <div class="header-toggle" style="margin-top: 32px">
+      <h1 class="page-title">Мониторинг запросов</h1>
+      <button class="toggle-btn" @click="expandedQueries = !expandedQueries">
+        {{ expandedQueries ? 'Скрыть' : 'Показать' }}
+      </button>
+    </div>
+
+    <transition name="fade">
+      <div v-if="expandedQueries" class="details-card">
+        <div v-if="loadingQueries" class="loading-text">Загрузка запросов...</div>
+        <div v-else>
+          <!-- Поиск -->
+          <div class="query-search-wrapper">
+            <InputText v-model="querySearch" placeholder="Поиск по SQL..." class="query-search" />
+          </div>
+
+          <!-- Таблица запросов -->
+          <table class="monitor-table">
+            <thead>
+              <tr>
+                <th>Запрос</th>
+                <th>Всего вызовов</th>
+                <th>Среднее время</th>
+                <th>Ст. отклонение</th>
+                <th>Количество строк</th>
+                <th>Shared Hit</th>
+                <th>Shared Read</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(query, index) in filteredQueries" :key="index">
+                <td class="query-cell">
+                  <div class="query-preview">
+                    <span
+                      class="query-text"
+                      :class="{ 'is-expandable': isExpandable(query.query) }"
+                      @click="toggleQuery(index)"
+                    >
+                      <transition name="query-slide">
+                        <pre v-if="expandedQueriesIndex.includes(index)">
+    {{ query.query }}
+  </pre
+                        >
+                        <pre v-else>
+    {{ getShortQuery(query.query) }}
+  </pre
+                        >
+                      </transition>
+                    </span>
+                    <button
+                      v-if="isExpandable(query.query)"
+                      class="expand-btn"
+                      @click.stop="toggleQuery(index)"
+                    >
+                      <FontAwesomeIcon
+                        :icon="
+                          expandedQueriesIndex.includes(index)
+                            ? 'fa-solid fa-chevron-up'
+                            : 'fa-solid fa-chevron-down'
+                        "
+                      />
+                    </button>
+                  </div>
+                </td>
+                <td>{{ query.calls }}</td>
+                <td>{{ query.meanExecTime.toFixed(2) }} ms</td>
+                <td>{{ query.stddevExecTime.toFixed(2) }} ms</td>
+                <td>{{ query.rows }}</td>
+                <td>{{ query.sharedBlocksHit }}</td>
+                <td>{{ query.sharedBlocksRead }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -153,13 +250,15 @@ import {
   deleteDatabase,
   createDatabaseUser,
   getDatabasesRoles,
+  getMonitoringDashboard,
+  getMonitoringTopQueries,
 } from '@/utils/api';
 import { useRenderStore } from '@/stores';
 import { storeToRefs } from 'pinia';
 import TableComponent from '../TableComponent.vue';
 import Dropdown from 'primevue/dropdown';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import type { ResponseCluster, CreateDatabaseRequest } from '@/types/api';
+import type { ResponseCluster, CreateDatabaseRequest, TopQueryStat } from '@/types/api';
 import type { ClusterUser, CreateDatabaseUser } from '@/types/entities';
 import InputText from 'primevue/inputtext';
 import Password from 'primevue/password';
@@ -184,6 +283,16 @@ const cluster = ref<ResponseCluster | null>(null);
 const databases = ref<string[]>([]);
 const users = ref<ClusterUser[]>([]);
 const availableRoles = ref<string[]>([]);
+
+const expandedMonitoring = ref(false);
+const dashboardUrl = ref<string | null>(null);
+
+const expandedQueries = ref(false);
+const loadingQueries = ref(false);
+const topQueries = ref<TopQueryStat[]>([]);
+
+const querySearch = ref('');
+const expandedQueriesIndex = ref<number[]>([]);
 
 const newDatabase = ref<CreateDatabaseRequest>({
   database: '',
@@ -216,6 +325,15 @@ watch(
       cluster.value = await getCluster(props.workspaceId, newClusterId);
       databases.value = await getDatabases(props.workspaceId, newClusterId);
       users.value = await getDatabasesUsers(props.workspaceId, newClusterId);
+
+      topQueries.value = [];
+      loadingQueries.value = true;
+      try {
+        topQueries.value = await getMonitoringTopQueries(props.workspaceId, newClusterId);
+      } catch (e) {
+        console.error('Ошибка загрузки top queries:', e);
+      }
+      loadingQueries.value = false;
     } catch (err) {
       console.error('Ошибка загрузки данных:', err);
     } finally {
@@ -234,6 +352,17 @@ watch(showUserForm, async (visible) => {
     } catch (err) {
       console.error('Ошибка загрузки ролей:', err);
       availableRoles.value = [];
+    }
+  }
+});
+
+watch(expandedMonitoring, async (opened) => {
+  if (opened && cluster.value && !dashboardUrl.value) {
+    try {
+      const { link } = await getMonitoringDashboard(props.workspaceId, cluster.value.id);
+      dashboardUrl.value = link;
+    } catch (err) {
+      console.error('Ошибка загрузки Grafana dashboard:', err);
     }
   }
 });
@@ -258,6 +387,26 @@ const displayData = computed(() => {
     'Cron расписание бэкапа': cluster.value.backupScheduleCronExpression,
   };
 });
+const filteredQueries = computed(() =>
+  topQueries.value.filter((q) => q.query.toLowerCase().includes(querySearch.value.toLowerCase())),
+);
+
+function toggleQuery(index: number) {
+  const i = expandedQueriesIndex.value.indexOf(index);
+  if (i !== -1) {
+    expandedQueriesIndex.value.splice(i, 1);
+  } else {
+    expandedQueriesIndex.value.push(index);
+  }
+}
+
+function isExpandable(query: string): boolean {
+  return query.length > 120;
+}
+
+function getShortQuery(query: string): string {
+  return query.length > 120 ? query.slice(0, 120) + '...' : query;
+}
 
 function getStatusInfo(status: number) {
   switch (status) {
@@ -616,6 +765,142 @@ function generatePassword() {
       color: #1c78b8;
     }
   }
+}
+.monitoring-iframe-wrapper {
+  margin-top: 20px;
+  border: 1px solid #dcdfe3;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+
+  iframe {
+    border: none;
+    width: 100%;
+    height: 700px;
+  }
+}
+.monitor-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+
+  th,
+  td {
+    padding: 10px;
+    border: 1px solid #e5e7eb;
+    text-align: left;
+    font-size: 13px;
+  }
+
+  th {
+    background-color: #f9fafb;
+    font-weight: 600;
+  }
+
+  pre {
+    margin: 0;
+    font-family: monospace;
+    font-size: 12px;
+    white-space: pre-wrap;
+  }
+}
+.query-search-wrapper {
+  margin-bottom: 12px;
+}
+
+.query-search {
+  width: 300px;
+  padding: 6px 10px;
+  font-size: 14px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+}
+
+.query-cell {
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  &:hover {
+    background-color: #f4f4f4;
+  }
+}
+
+.expand-enter-active,
+.expand-leave-active {
+  transition:
+    max-height 0.3s ease,
+    opacity 0.3s ease;
+  overflow: hidden;
+}
+
+.expand-enter-from,
+.expand-leave-to {
+  max-height: 0;
+  opacity: 0;
+}
+
+.expand-enter-to,
+.expand-leave-from {
+  max-height: 300px;
+  opacity: 1;
+}
+.query-cell {
+  position: relative;
+  padding-right: 40px;
+  font-size: 12px;
+
+  .query-preview {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+
+    .query-text {
+      flex-grow: 1;
+      white-space: pre-wrap;
+      font-family: monospace;
+      cursor: default;
+    }
+
+    .is-expandable {
+      cursor: pointer;
+      transition: color 0.2s;
+      &:hover {
+        color: #1f6feb;
+      }
+    }
+
+    .expand-btn {
+      background: none;
+      border: none;
+      padding: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      color: #3498db;
+      transition: transform 0.3s ease;
+
+      &:hover {
+        transform: scale(1.1);
+        color: #1e87d8;
+      }
+    }
+  }
+}
+
+.query-expand-enter-active,
+.query-expand-leave-active {
+  transition: all 0.3s ease;
+}
+
+.query-expand-enter-from,
+.query-expand-leave-to {
+  opacity: 0;
+  max-height: 0;
+}
+
+.query-expand-enter-to,
+.query-expand-leave-from {
+  opacity: 1;
+  max-height: 600px;
 }
 </style>
 
