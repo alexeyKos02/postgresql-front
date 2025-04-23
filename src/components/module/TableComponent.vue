@@ -14,6 +14,7 @@ const props = defineProps<{
   clusterUsers?: ResponseClusterUser[];
   functions?: ((id: string) => void)[];
   deadlocks?: DeadlockStat[];
+  replicationHosts?: string[];
 }>();
 
 const store = useRenderStore();
@@ -87,14 +88,23 @@ function openInfo() {
         <FontAwesomeIcon icon="fa-solid fa-trash" />
       </button>
     </div>
+
     <!-- Deadlocks -->
     <div v-for="(item, index) in props.deadlocks" :key="index" class="item">
-        <div class="info">
-          <FontAwesomeIcon icon="fa-solid fa-bolt" />
-          <span>{{ item.database }}</span>
-          <Tag :value="`${item.deadlockCount}`" severity="danger" rounded class="tag" />
-        </div>
+      <div class="info">
+        <FontAwesomeIcon icon="fa-solid fa-bolt" />
+        <span>{{ item.database }}</span>
+        <Tag :value="`${item.deadlockCount}`" severity="danger" rounded class="tag" />
       </div>
+    </div>
+
+    <!-- Replication Hosts -->
+    <div v-for="(host, index) in props.replicationHosts" :key="index" class="item">
+      <div class="info">
+        <FontAwesomeIcon icon="fa-solid fa-server" />
+        <span>{{ host }}</span>
+      </div>
+    </div>
   </div>
 </template>
 

@@ -84,10 +84,8 @@ export interface SignupDto {
   password: string;
 }
 
-export interface ResponseBackup {
-  api_version: string;
-  value: BackupData;
-}
+export type ResponseBackup = BackupData[];
+
 
 export type ResponseCluster = ClusterData;
 
@@ -195,8 +193,33 @@ export interface RequestBody {
 }
 
 export interface BackupData {
-  // Данные о резервной копии
+  status: {
+    backupId: string;
+    backupName: string;
+    backupLabelFile?: string;
+    beginLSN?: string;
+    beginWal?: string;
+    endLSN?: string;
+    endWal?: string;
+    error?: string;
+    instanceID: {
+      ContainerID: string;
+      podName: string;
+    };
+    method: string;
+    online?: boolean;
+    phase: 'failed' | 'completed' | string;
+    snapshotBackupStatus?: {
+      elements: {
+        name: string;
+        type: string;
+      }[];
+    };
+    startedAt: string;
+    stoppedAt?: string;
+  };
 }
+
 
 export interface ClusterData {
   id: number;
@@ -240,4 +263,9 @@ export interface SecurityGroupData {
   workspaceId: number;
   name: string;
   allowedIps: string[];
+}
+
+export interface ReplicationSettingsRequest {
+  syncReplicas: number;
+  dataDurability: string;
 }

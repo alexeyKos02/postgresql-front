@@ -46,7 +46,7 @@ const buttons = reactive([
 
 <template>
   <div class="modal-header">
-    <h1>{{ workspace?.name || 'Без имени' }}</h1>
+    <h1>{{ workspace?.name || 'Кластер не выбран' }}</h1>
   </div>
   <ButtonsComponent :buttons="buttons"></ButtonsComponent>
   <div class="main-content">

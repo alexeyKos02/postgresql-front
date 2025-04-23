@@ -288,6 +288,55 @@
         </div>
       </div>
     </transition>
+
+    <div class="header-toggle" style="margin-top: 32px">
+      <h1 class="page-title">Replication Hosts</h1>
+      <div class="right-controls">
+        <button class="toggle-btn" @click="expandedReplicationHosts = !expandedReplicationHosts">
+          {{ expandedReplicationHosts ? 'Скрыть' : 'Показать' }}
+        </button>
+        <div class="icon" @click="handleAddReplicationHost">
+          <FontAwesomeIcon icon="fa-solid fa-plus" />
+        </div>
+        <div class="icon" @click="expandedReplicationSettings = !expandedReplicationSettings">
+          <FontAwesomeIcon icon="fa-solid fa-gear" />
+        </div>
+      </div>
+    </div>
+
+    <transition name="fade">
+      <div v-if="expandedReplicationSettings">
+        <div class="details-card">
+          <div class="db-form-grid">
+            <div class="db-field">
+              <label>Количество синхронных реплик</label>
+              <InputText v-model.number="replicationSettings.syncReplicas" type="number" />
+            </div>
+            <div class="db-field">
+              <label>Устойчивость данных</label>
+              <Dropdown
+                v-model="replicationSettings.dataDurability"
+                :options="['preferred', 'required']"
+              />
+            </div>
+          </div>
+          <div class="form-footer">
+            <button class="submit-db-btn" @click="saveReplicationSettings">Сохранить</button>
+          </div>
+        </div>
+      </div>
+    </transition>
+
+    <transition name="fade">
+      <div v-if="expandedReplicationHosts">
+        <div v-if="loadingReplicationHosts" class="loading-text">Загрузка...</div>
+        <div v-else class="table-scroll">
+          <TableComponent :replicationHosts="replicationHosts" />
+        </div>
+      </div>
+    </transition>
+
+    <!-- Репликация: Настройки -->
   </div>
 </template>
 
@@ -304,6 +353,9 @@ import {
   getMonitoringDashboard,
   getMonitoringTopQueries,
   getMonitoringDeadlocks,
+  getReplicationHosts,
+  updateReplicationSettings,
+  postReplicationHosts,
 } from '@/utils/api';
 import { useRenderStore } from '@/stores';
 import { storeToRefs } from 'pinia';
@@ -358,6 +410,63 @@ const expandedQueriesIndex = ref<number[]>([]);
 const expandedDeadlocks = ref(false);
 const loadingDeadlocks = ref(false);
 const deadlocks = ref<DeadlockStat[]>([]);
+
+const expandedReplicationHosts = ref(false);
+const expandedReplicationSettings = ref(false);
+const loadingReplicationHosts = ref(false);
+const replicationHosts = ref<string[]>([]);
+const replicationSettings = ref({
+  syncReplicas: Number(cluster.value?.syncReplicas),
+  dataDurability: 'preferred',
+});
+
+watch(expandedReplicationHosts, async (opened) => {
+  if (opened && cluster.value && replicationHosts.value.length === 0) {
+    loadingReplicationHosts.value = true;
+    try {
+      replicationHosts.value = await getReplicationHosts(props.workspaceId, cluster.value.id);
+    } catch (err) {
+      console.error('Ошибка загрузки replication hosts:', err);
+    } finally {
+      loadingReplicationHosts.value = false;
+    }
+  }
+});
+
+async function saveReplicationSettings() {
+  const maxReplicas = replicationHosts.value.length - 1;
+  if (replicationSettings.value.syncReplicas > maxReplicas) {
+    toast.add({
+      severity: 'warn',
+      summary: 'Ошибка валидации',
+      detail: `Количество синхронных реплик не корректно`,
+      life: 3000,
+    });
+    return;
+  }
+
+  try {
+    await updateReplicationSettings(
+      props.workspaceId,
+      cluster.value!.id,
+      replicationSettings.value,
+    );
+    toast.add({
+      severity: 'success',
+      summary: 'Успешно',
+      detail: 'Настройки репликации сохранены',
+      life: 3000,
+    });
+  } catch (err) {
+    console.error('Ошибка сохранения настроек:', err);
+    toast.add({
+      severity: 'error',
+      summary: 'Ошибка',
+      detail: 'Не удалось сохранить настройки репликации',
+      life: 3000,
+    });
+  }
+}
 
 const newDatabase = ref<CreateDatabaseRequest>({
   database: '',
@@ -469,7 +578,27 @@ const displayData = computed(() => {
 const filteredQueries = computed(() =>
   topQueries.value.filter((q) => q.query.toLowerCase().includes(querySearch.value.toLowerCase())),
 );
-
+const handleAddReplicationHost = async () => {
+  if (!cluster.value) return;
+  try {
+    await postReplicationHosts(props.workspaceId, cluster.value.id);
+    replicationHosts.value = await getReplicationHosts(props.workspaceId, cluster.value.id);
+    toast.add({
+      severity: 'success',
+      summary: 'Хост добавлен',
+      detail: 'Новый репликационный хост успешно добавлен',
+      life: 3000,
+    });
+  } catch (err) {
+    console.error('Ошибка добавления хоста:', err);
+    toast.add({
+      severity: 'error',
+      summary: 'Ошибка',
+      detail: 'Не удалось добавить хост',
+      life: 3000,
+    });
+  }
+};
 function toggleQuery(index: number) {
   const i = expandedQueriesIndex.value.indexOf(index);
   if (i !== -1) {
@@ -668,7 +797,6 @@ function downloadFile(content: string, filename: string, type: string) {
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   padding: 20px;
-  margin-top: 16px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -1041,6 +1169,7 @@ function downloadFile(content: string, filename: string, type: string) {
   border-radius: 8px;
 }
 .table-scroll {
+  margin-top: 16px;
   overflow-x: auto;
   width: 100%;
   max-width: 100%;

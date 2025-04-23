@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { RouterView, useRouter } from 'vue-router';
+import { RouterView, useRouter, useRoute } from 'vue-router';
 import ToolbarComponent from './components/ToolbarComponent.vue';
 import GlobalLoader from './components/GlobalLoader.vue';
 import { useRenderStore } from '@/stores';
 
 const store = useRenderStore();
 const router = useRouter();
+const route = useRoute();
 
 onMounted(async () => {
   try {
@@ -19,7 +20,8 @@ onMounted(async () => {
 </script>
 
 <template>
-  <ToolbarComponent />
+  <!-- Показываем тулбар только если НЕ login -->
+  <ToolbarComponent v-if="route.path !== '/login'" />
   <GlobalLoader />
   <RouterView />
 </template>

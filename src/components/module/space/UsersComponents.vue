@@ -18,19 +18,23 @@ const users = ref<User[]>([]);
 const loading = ref(true);
 
 async function fetchUsers(workspaceId: number) {
-  try {
-    loading.value = true;
-    const response = await getWorkspaceUsers(workspaceId);
-    users.value = response;
-  } catch (error: any) {
-    toast.add({
-      severity: 'error',
-      summary: 'Ошибка загрузки',
-      detail: error?.message || 'Не удалось загрузить пользователей',
-      life: 4000,
-    });
-    users.value = [];
-  } finally {
+  if (props.workspaceId) {
+    try {
+      loading.value = true;
+      const response = await getWorkspaceUsers(workspaceId);
+      users.value = response;
+    } catch (error: any) {
+      toast.add({
+        severity: 'error',
+        summary: 'Ошибка загрузки',
+        detail: error?.message || 'Не удалось загрузить пользователей',
+        life: 4000,
+      });
+      users.value = [];
+    } finally {
+      loading.value = false;
+    }
+  } else {
     loading.value = false;
   }
 }

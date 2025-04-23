@@ -86,6 +86,11 @@
               <span>Полноразмерный формат</span>
               <InputSwitch v-model="isFullViewEnabled" @change="onFullViewToggle" />
             </div>
+
+            <div class="settings-item logout-item" @click="logout">
+              <span>Выйти из аккаунта</span>
+              <i class="pi pi-sign-out" />
+            </div>
           </div>
         </OverlayPanel>
       </template>
@@ -105,9 +110,11 @@ import { useRenderStore } from '@/stores';
 import { useToast } from 'primevue';
 import OverlayPanel from 'primevue/overlaypanel';
 import InputSwitch from 'primevue/inputswitch';
+import { useRouter } from 'vue-router';
 
 const store = useRenderStore();
 const toast = useToast();
+const router = useRouter();
 const popupOptions = ref([{ name: 'Открыть в новом окне', code: 'create' }]);
 
 // Состояния добавления пространства
@@ -204,7 +211,7 @@ function handleBlur() {
   }, 150);
 }
 
-// Панель настроек теперь открывается по клику на аватарку
+// Панель настроек
 const toggleSettings = (event: Event) => {
   settingsPanel.value.toggle(event);
 };
@@ -214,7 +221,7 @@ function onFullViewToggle() {
   store.isFull = isFullViewEnabled.value;
 }
 
-// Следим за изменениями в store для обновления свитча
+// Следим за изменениями в store
 watch(
   () => store.isFull,
   (newVal) => {
@@ -223,7 +230,19 @@ watch(
   { immediate: true },
 );
 
-// При монтировании страницы
+// Выход из аккаунта
+function logout() {
+  localStorage.removeItem('token');
+  toast.add({
+    severity: 'info',
+    summary: 'Выход',
+    detail: 'Вы вышли из аккаунта',
+    life: 2000,
+  });
+  router.push('/login');
+}
+
+// При монтировании
 onMounted(async () => {
   try {
     isLoading.value = true;
@@ -291,6 +310,20 @@ onMounted(async () => {
 
     span {
       font-weight: 500;
+    }
+  }
+
+  .logout-item {
+    margin-top: 1rem;
+    cursor: pointer;
+    color: #dc3545;
+
+    &:hover {
+      color: #c82333;
+    }
+
+    i {
+      margin-left: 0.5rem;
     }
   }
 }

@@ -21,22 +21,26 @@ const securityGroups = ref<SecurityGroup[]>([]);
 const loading = ref(true);
 
 async function fetchSecurityGroups(workspaceId: number) {
-  try {
-    loading.value = true;
-    const response = await getSecurityGroups(workspaceId);
-    securityGroups.value = response.map((item) => ({
-      name: item.name,
-      id: item.id,
-    }));
-  } catch (error: any) {
-    toast.add({
-      severity: 'error',
-      summary: 'Ошибка загрузки Security Groups',
-      detail: error.message || 'Не удалось загрузить список',
-      life: 4000,
-    });
-    securityGroups.value = [];
-  } finally {
+  if (props.workspaceId) {
+    try {
+      loading.value = true;
+      const response = await getSecurityGroups(workspaceId);
+      securityGroups.value = response.map((item) => ({
+        name: item.name,
+        id: item.id,
+      }));
+    } catch (error: any) {
+      toast.add({
+        severity: 'error',
+        summary: 'Ошибка загрузки Security Groups',
+        detail: error.message || 'Не удалось загрузить список',
+        life: 4000,
+      });
+      securityGroups.value = [];
+    } finally {
+      loading.value = false;
+    }
+  } else {
     loading.value = false;
   }
 }

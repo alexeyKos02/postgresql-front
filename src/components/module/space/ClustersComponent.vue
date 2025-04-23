@@ -80,15 +80,18 @@ const intervalId = ref<number | null>(null);
 const currentClusters = computed(() => clusters.value[props.moduleId] || []);
 
 async function fetchClusters() {
-  try {
-    await store.fetchClusters(props.workspaceId, props.moduleId);
-  } catch (error) {
-    toast.add({
-      severity: 'error',
-      summary: 'Ошибка',
-      detail: 'Не удалось загрузить кластеры',
-      life: 3000,
-    });
+  if (props.workspaceId) {
+    console.log(props.workspaceId + 'dddd');
+    try {
+      await store.fetchClusters(props.workspaceId, props.moduleId);
+    } catch (error) {
+      toast.add({
+        severity: 'error',
+        summary: 'Ошибка',
+        detail: 'Не удалось загрузить кластеры',
+        life: 3000,
+      });
+    }
   }
 }
 

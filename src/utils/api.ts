@@ -30,6 +30,7 @@ import type {
   ResponseDashboard,
   ResponseTopQueries,
   DeadlockStat,
+  ReplicationSettingsRequest,
 } from '@/types/api';
 import axios from 'axios';
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
@@ -457,4 +458,40 @@ export const inviteUserToWorkspace = async (
 export const getWorkspaceUsers = async (workspaceId: number): Promise<ResponseUsers> => {
   const response = await request<ResponseUsers>('get', `/workspaces/${workspaceId}/users`);
   return response.data;
+};
+
+export const getReplicationHosts = async (
+  workspaceId: number,
+  clusterId: number,
+): Promise<string[]> => {
+  const response = await request<string[]>(
+    'get',
+    `/workspace/${workspaceId}/cluster/${clusterId}/replication/hosts`,
+  );
+  return response.data;
+};
+export const postReplicationHosts = async (
+  workspaceId: number,
+  clusterId: number,
+): Promise<void> => {
+  await request<void>('post', `/workspace/${workspaceId}/cluster/${clusterId}/replication/hosts`);
+};
+export const deleteReplicationHosts = async (
+  workspaceId: number,
+  clusterId: number,
+): Promise<void> => {
+  await request<void>('delete', `/workspace/${workspaceId}/cluster/${clusterId}/replication/hosts`);
+};
+
+export const updateReplicationSettings = async (
+  workspaceId: number,
+  clusterId: number,
+  settings: ReplicationSettingsRequest,
+): Promise<void> => {
+  await request<void>(
+    'post',
+    `/workspace/${workspaceId}/cluster/${clusterId}/replication/settings`,
+    {},
+    settings as unknown as RequestBody,
+  );
 };
