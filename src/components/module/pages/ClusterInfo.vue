@@ -31,12 +31,12 @@
     <div class="header-toggle" style="margin-top: 32px">
       <h1 class="page-title">Базы данных</h1>
       <div class="right-controls">
-        <button class="toggle-btn" @click="expandedDatabases = !expandedDatabases">
-          {{ expandedDatabases ? 'Скрыть' : 'Показать' }}
-        </button>
         <div class="icon" @click="showAddForm = !showAddForm">
           <FontAwesomeIcon icon="fa-solid fa-plus" />
         </div>
+        <button class="toggle-btn" @click="expandedDatabases = !expandedDatabases">
+          {{ expandedDatabases ? 'Скрыть' : 'Показать' }}
+        </button>
       </div>
     </div>
 
@@ -66,12 +66,12 @@
     <div class="header-toggle" style="margin-top: 32px">
       <h1 class="page-title">Пользователи</h1>
       <div class="right-controls">
-        <button class="toggle-btn" @click="expandedUsers = !expandedUsers">
-          {{ expandedUsers ? 'Скрыть' : 'Показать' }}
-        </button>
         <div class="icon" @click="showUserForm = !showUserForm">
           <FontAwesomeIcon icon="fa-solid fa-plus" />
         </div>
+        <button class="toggle-btn" @click="expandedUsers = !expandedUsers">
+          {{ expandedUsers ? 'Скрыть' : 'Показать' }}
+        </button>
       </div>
     </div>
 
@@ -292,15 +292,15 @@
     <div class="header-toggle" style="margin-top: 32px">
       <h1 class="page-title">Replication Hosts</h1>
       <div class="right-controls">
-        <button class="toggle-btn" @click="expandedReplicationHosts = !expandedReplicationHosts">
-          {{ expandedReplicationHosts ? 'Скрыть' : 'Показать' }}
-        </button>
         <div class="icon" @click="handleAddReplicationHost">
           <FontAwesomeIcon icon="fa-solid fa-plus" />
         </div>
         <div class="icon" @click="expandedReplicationSettings = !expandedReplicationSettings">
           <FontAwesomeIcon icon="fa-solid fa-gear" />
         </div>
+        <button class="toggle-btn" @click="expandedReplicationHosts = !expandedReplicationHosts">
+          {{ expandedReplicationHosts ? 'Скрыть' : 'Показать' }}
+        </button>
       </div>
     </div>
 
@@ -336,7 +336,100 @@
       </div>
     </transition>
 
-    <!-- Репликация: Настройки -->
+    <!-- Бэкапы -->
+    <div class="header-toggle" style="margin-top: 32px">
+      <h1 class="page-title">Резервное копирование</h1>
+      <div class="right-controls">
+        <div class="icon" @click="showBackupForm = !showBackupForm">
+          <FontAwesomeIcon icon="fa-solid fa-database" v-tooltip="'Создать бэкап'" />
+        </div>
+        <div class="icon" @click="showScheduleForm = !showScheduleForm">
+          <FontAwesomeIcon icon="fa-solid fa-clock" v-tooltip="'Настроить расписание'" />
+        </div>
+        <div class="icon" @click="showRecoveryForm = !showRecoveryForm">
+          <FontAwesomeIcon icon="fa-solid fa-rotate-left" v-tooltip="'Восстановление из бэкапа'" />
+        </div>
+        <button class="toggle-btn" @click="expandedBackup = !expandedBackup">
+          {{ expandedBackup ? 'Скрыть' : 'Показать' }}
+        </button>
+      </div>
+    </div>
+
+    <transition name="fade">
+      <div v-if="expandedBackup">
+        <div v-if="loadingBackups" class="loading-text">Загрузка резервных копий...</div>
+        <div v-else class="table-scroll">
+          <TableComponent :backups="backups" />
+        </div>
+      </div>
+    </transition>
+
+    <transition name="fade">
+      <div v-if="showBackupForm" class="db-card-form">
+        <div class="db-card-title">Создать резервную копию</div>
+        <div class="db-form-grid">
+          <div class="db-field">
+            <label>Метод</label>
+            <Dropdown
+              v-model="newBackup.method"
+              :options="['volumeSnapshot', 'barmanObjectStore']"
+            />
+          </div>
+        </div>
+        <div class="form-footer">
+          <button class="cancel-btn" @click="showBackupForm = false">Отмена</button>
+          <button class="submit-db-btn" @click="submitBackup">Создать</button>
+        </div>
+      </div>
+    </transition>
+
+    <transition name="fade">
+      <div v-if="showScheduleForm" class="db-card-form">
+        <div class="db-card-title">Настроить расписание бэкапов</div>
+        <div class="db-form-grid">
+          <div class="db-field">
+            <label>Cron выражение</label>
+            <InputText v-model="schedule.cronExpression" />
+          </div>
+          <div class="db-field">
+            <label>Метод</label>
+            <Dropdown
+              v-model="schedule.method"
+              :options="['volumeSnapshot', 'barmanObjectStore']"
+            />
+          </div>
+        </div>
+        <div class="form-footer">
+          <button class="cancel-btn" @click="showScheduleForm = false">Отмена</button>
+          <button class="submit-db-btn" @click="submitSchedule">Сохранить</button>
+        </div>
+      </div>
+    </transition>
+
+    <transition name="fade">
+      <div v-if="showRecoveryForm" class="db-card-form">
+        <div class="db-card-title">Восстановить из бэкапа</div>
+        <div class="db-form-grid">
+          <div class="db-field">
+            <label>Имя бэкапа</label>
+            <Dropdown
+              v-model="recovery.backupName"
+              :options="
+                backups
+                  .map((b) => b.status.backupName)
+              "
+              placeholder="Выберите бэкап"
+              :filter="true"
+              style="width: 100%"
+            />
+          </div>
+        </div>
+        <div class="form-footer">
+          <button class="cancel-btn" @click="showRecoveryForm = false">Отмена</button>
+          <button class="submit-db-btn" @click="submitRecovery">Восстановить</button>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -356,6 +449,10 @@ import {
   getReplicationHosts,
   updateReplicationSettings,
   postReplicationHosts,
+  recoverFromBackup,
+  scheduleBackup,
+  createBackup,
+  getBackup,
 } from '@/utils/api';
 import { useRenderStore } from '@/stores';
 import { storeToRefs } from 'pinia';
@@ -367,6 +464,10 @@ import type {
   CreateDatabaseRequest,
   TopQueryStat,
   DeadlockStat,
+  RecoveryFromBackupRequest,
+  CreateBackupRequest,
+  BackupScheduleRequest,
+  BackupData,
 } from '@/types/api';
 import type { ClusterUser, CreateDatabaseUser } from '@/types/entities';
 import InputText from 'primevue/inputtext';
@@ -419,6 +520,15 @@ const replicationSettings = ref({
   syncReplicas: Number(cluster.value?.syncReplicas),
   dataDurability: 'preferred',
 });
+const expandedBackup = ref(false);
+const showBackupForm = ref(false);
+const showScheduleForm = ref(false);
+const showRecoveryForm = ref(false);
+const loadingBackups = ref(false);
+const backups = ref<BackupData[]>([]);
+const newBackup = ref<CreateBackupRequest>({ method: 'stream' });
+const schedule = ref<BackupScheduleRequest>({ cronExpression: '', method: 'stream' });
+const recovery = ref<RecoveryFromBackupRequest>({ backupName: '' });
 
 watch(expandedReplicationHosts, async (opened) => {
   if (opened && cluster.value && replicationHosts.value.length === 0) {
@@ -551,6 +661,19 @@ watch(expandedDeadlocks, async (opened) => {
       deadlocks.value = [];
     } finally {
       loadingDeadlocks.value = false;
+    }
+  }
+});
+
+watch(expandedBackup, async (visible) => {
+  if (visible && cluster.value) {
+    loadingBackups.value = true;
+    try {
+      backups.value = await getBackup(props.workspaceId, cluster.value.id);
+    } catch (err) {
+      console.error('Ошибка загрузки backup list:', err);
+    } finally {
+      loadingBackups.value = false;
     }
   }
 });
@@ -740,6 +863,37 @@ function downloadFile(content: string, filename: string, type: string) {
   link.href = URL.createObjectURL(blob);
   link.download = filename;
   link.click();
+}
+
+async function submitBackup() {
+  try {
+    await createBackup(props.workspaceId, cluster.value!.id, newBackup.value);
+    backups.value = await getBackup(props.workspaceId, cluster.value!.id);
+    toast.add({ severity: 'success', summary: 'Бэкап создан', life: 3000 });
+    showBackupForm.value = false;
+  } catch (err) {
+    toast.add({ severity: 'error', summary: 'Ошибка создания бэкапа', life: 3000 });
+  }
+}
+
+async function submitSchedule() {
+  try {
+    await scheduleBackup(props.workspaceId, cluster.value!.id, schedule.value);
+    toast.add({ severity: 'success', summary: 'Расписание сохранено', life: 3000 });
+    showScheduleForm.value = false;
+  } catch (err) {
+    toast.add({ severity: 'error', summary: 'Ошибка сохранения расписания', life: 3000 });
+  }
+}
+
+async function submitRecovery() {
+  try {
+    await recoverFromBackup(props.workspaceId, cluster.value!.id, recovery.value);
+    toast.add({ severity: 'success', summary: 'Восстановление начато', life: 3000 });
+    showRecoveryForm.value = false;
+  } catch (err) {
+    toast.add({ severity: 'error', summary: 'Ошибка восстановления', life: 3000 });
+  }
 }
 </script>
 

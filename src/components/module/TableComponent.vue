@@ -5,7 +5,7 @@ import Tag from 'primevue/tag';
 import { useRenderStore } from '@/stores';
 import { TypeModule } from '@/types/components';
 import type { User, SecurityGroup } from '@/types/entities';
-import type { DeadlockStat, ResponseClusterUser } from '@/types/api';
+import type { DeadlockStat, ResponseClusterUser, BackupData } from '@/types/api';
 
 const props = defineProps<{
   users?: User[];
@@ -15,6 +15,7 @@ const props = defineProps<{
   functions?: ((id: string) => void)[];
   deadlocks?: DeadlockStat[];
   replicationHosts?: string[];
+  backups?: BackupData[];
 }>();
 
 const store = useRenderStore();
@@ -103,6 +104,24 @@ function openInfo() {
       <div class="info">
         <FontAwesomeIcon icon="fa-solid fa-server" />
         <span>{{ host }}</span>
+      </div>
+    </div>
+
+    <!-- Backups -->
+    <div v-for="(backup, index) in props.backups" :key="index" class="item">
+      <div class="info">
+        <FontAwesomeIcon icon="fa-solid fa-database" />
+        <span>{{ backup.status.backupName }}</span>
+        <Tag
+          :value="backup.status.phase"
+          :severity="backup.status.phase === 'completed' ? 'success' : 'danger'"
+          class="tag"
+        />
+        <Tag
+          v-if="backup.status.startedAt"
+          :value="new Date(backup.status.startedAt).toLocaleString()"
+          class="tag"
+        />
       </div>
     </div>
   </div>

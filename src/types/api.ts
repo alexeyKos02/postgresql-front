@@ -86,7 +86,6 @@ export interface SignupDto {
 
 export type ResponseBackup = BackupData[];
 
-
 export type ResponseCluster = ClusterData;
 
 export interface ResponseDatabase {
@@ -219,7 +218,6 @@ export interface BackupData {
     stoppedAt?: string;
   };
 }
-
 
 export interface ClusterData {
   id: number;
