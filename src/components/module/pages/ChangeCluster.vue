@@ -119,19 +119,17 @@ async function saveChanges() {
 
     await createClusterConfiguration(props.workspaceId, clusterId, payload);
 
-    // 🕵️‍♂️ Проверка применения
-    const maxAttempts = 5;
+    // ⏳ Ожидание готовности
     let applied = false;
 
-    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    while (true) {
       const readiness = await getClusterConfigurationReadiness(props.workspaceId, clusterId);
 
-      if (readiness.status === 'ready') {
+      if (readiness.status !== 'waiting') {
         applied = true;
         break;
       }
 
-      // Подождать перед следующей попыткой
       await new Promise((resolve) => setTimeout(resolve, 1000));
     }
 
@@ -141,13 +139,6 @@ async function saveChanges() {
         summary: 'Сохранено',
         detail: 'Конфигурация успешно применена',
         life: 3000,
-      });
-    } else {
-      toast.add({
-        severity: 'warn',
-        summary: 'Изменения не применились',
-        detail: 'Проверьте параметры вручную или попробуйте позже',
-        life: 4000,
       });
     }
   } catch (error: any) {

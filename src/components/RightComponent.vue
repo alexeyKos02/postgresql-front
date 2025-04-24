@@ -12,7 +12,7 @@ import ChangeCluster from './module/pages/ChangeCluster.vue';
 
 const store = useRenderStore();
 const module = ref<Module | null>(store.modules[0]);
-const workSpace = computed(() => store.workspaces[0]);
+const workSpace = computed(() => store.currentWorkspaces[0]);
 
 // Слежение за изменением module?.type и добавление в историю
 watch(

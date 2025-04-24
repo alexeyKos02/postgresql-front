@@ -310,7 +310,11 @@
           <div class="db-form-grid">
             <div class="db-field">
               <label>Количество синхронных реплик</label>
-              <InputText v-model.number="replicationSettings.syncReplicas" type="number" />
+              <InputText
+                :modelValue="replicationSettings.syncReplicas.toString()"
+                @update:modelValue="(val) => (replicationSettings.syncReplicas = Number(val))"
+                type="number"
+              />
             </div>
             <div class="db-field">
               <label>Устойчивость данных</label>
@@ -386,10 +390,10 @@
     <transition name="fade">
       <div v-if="showScheduleForm" class="db-card-form">
         <div class="db-card-title">Настроить расписание бэкапов</div>
-        <div class="db-form-grid">
+        <div class="db-form-grid schedule-form-grid">
           <div class="db-field">
             <label>Cron выражение</label>
-            <InputText v-model="schedule.cronExpression" />
+            <CronPresetSelector v-model="schedule.cronExpression" />
           </div>
           <div class="db-field">
             <label>Метод</label>
@@ -414,10 +418,7 @@
             <label>Имя бэкапа</label>
             <Dropdown
               v-model="recovery.backupName"
-              :options="
-                backups
-                  .map((b) => b.status.backupName)
-              "
+              :options="backups.map((b) => b.status.backupName)"
               placeholder="Выберите бэкап"
               :filter="true"
               style="width: 100%"
@@ -477,6 +478,8 @@ import MultiSelect from 'primevue/multiselect';
 import Skeleton from 'primevue/skeleton';
 import Calendar from 'primevue/calendar';
 import { useToast } from 'primevue';
+import CronPresetSelector from '@/components/CronPresetSelector.vue';
+
 const props = defineProps<{
   workspaceId: number;
   moduleId: number;
@@ -1329,6 +1332,13 @@ async function submitRecovery() {
   max-width: 100%;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
+}
+.schedule-form-grid {
+  grid-template-columns: repeat(2, 1fr);
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
 

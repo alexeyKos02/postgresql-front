@@ -113,7 +113,7 @@ export type ResponseClusterUsers = ResponseClusterUser[];
 
 export type ResponseDatabases = string[];
 export type ResposeReadiness = {
-  status: 'success' | 'error' | 'ready';
+  status: 'waiting' | 'failed' | 'success';
   failedParameters: string[] | null;
 };
 export interface ResponseDashboard {

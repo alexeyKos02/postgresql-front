@@ -140,11 +140,7 @@
     <div class="double-group">
       <div class="form-group">
         <label>Backup Schedule Cron</label>
-        <InputText
-          v-model="form.backupScheduleCronExpression"
-          placeholder="например, 0 2 * * *"
-          @blur="validateCron"
-        />
+        <CronPresetSelector v-model="form.backupScheduleCronExpression" />
       </div>
 
       <div class="form-group">
@@ -169,6 +165,7 @@ import { useToast } from 'primevue/usetoast';
 import { useRenderStore } from '@/stores';
 import type { CreateClusterDto } from '@/types/api';
 import { checkClusterNameExists, getSecurityGroups } from '@/utils/api';
+import CronPresetSelector from '@/components/CronPresetSelector.vue';
 
 const props = defineProps<{
   workspaceId: number;
@@ -285,22 +282,9 @@ function validateCronField(field: string, min: number, max: number): boolean {
   return numbers.every((num) => num >= min && num <= max);
 }
 
-function validateCron() {
-  if (!form.value.backupScheduleCronExpression) return;
-
-  if (!isValidCron(form.value.backupScheduleCronExpression)) {
-    toast.add({
-      severity: 'warn',
-      summary: 'Проверьте cron',
-      detail: 'Некорректное cron выражение',
-      life: 3000,
-    });
-  }
-}
-
 function prepareClusterData(): CreateClusterDto {
   const cron = form.value.backupScheduleCronExpression.trim();
-  const fullCron = cron.startsWith('0 ') ? cron : `0 ${cron}`;
+  const fullCron = `0 ${cron}`;
 
   return {
     systemName: form.value.systemName || '',
