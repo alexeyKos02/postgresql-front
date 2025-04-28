@@ -275,3 +275,9 @@ export interface WorkspaceUserMe {
   firstName: string;
   lastName: string;
 }
+export interface ClusterResourceUsage {
+  pod: string;
+  cpuUsage: number;
+  memoryUsage: number;
+  storageUsage: number;
+}

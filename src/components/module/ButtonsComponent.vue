@@ -1,16 +1,16 @@
 <script lang="ts" setup>
 import type { ButtonClass } from '@/types/components';
-import { defineProps, ref } from 'vue';
+import { defineProps, ref, watch, computed } from 'vue';
 
 const props = defineProps<{
   buttons: ButtonClass[];
+  activePage: number; // <-- Новое: активный индекс (передается через пропсы)
 }>();
 
-// Локальный reactive индекс активной кнопки
-const activeIndex = ref<number | null>(null);
+// Не нужен отдельный ref для activeIndex, он теперь вычисляется
+const activeIndex = computed(() => props.activePage);
 
 function handleClick(index: number, action: () => void) {
-  activeIndex.value = index;
   action();
 }
 </script>

@@ -35,22 +35,22 @@ export const useRenderStore = defineStore('render', {
         cluster: { name: 'first' },
       },
       {
-        type: TypeModule.AddSecurityGroup,
-        isActive: true,
+        type: TypeModule.Default,
+        isActive: false,
         location: 1,
         spacePage: SpacePage.Clusters,
         cluster: { name: 'second' },
       },
       {
-        type: TypeModule.ClusterInfo,
-        isActive: true,
+        type: TypeModule.Default,
+        isActive: false,
         location: 2,
         spacePage: SpacePage.Clusters,
         cluster: { name: 'third' },
       },
       {
-        type: TypeModule.Space,
-        isActive: true,
+        type: TypeModule.Default,
+        isActive: false,
         location: 3,
         spacePage: SpacePage.Clusters,
         cluster: { name: 'fourth' },
@@ -68,7 +68,13 @@ export const useRenderStore = defineStore('render', {
 
     clusters: [[], [], [], []] as ClusterData[][],
     singleClusters: [0, 0, 0, 0] as number[],
-    currentUserInfo: { role: '', workspace: '', cluster: '' } as currentUser,
+    currentUserInfoId: 0 as number,
+    currentUserInfo: [
+      { role: '', workspace: '', cluster: '' },
+      { role: '', workspace: '', cluster: '' },
+      { role: '', workspace: '', cluster: '' },
+      { role: '', workspace: '', cluster: '' },
+    ] as currentUser[],
   }),
 
   actions: {
@@ -190,14 +196,14 @@ export const useRenderStore = defineStore('render', {
       }
     },
 
-    async fetchCurrentUserInfo(workspaceId: number, workspaceName: string) {
+    async fetchCurrentUserInfo(workspaceId: number, workspaceName: string, moduleId: number) {
       try {
         const response = await getCurrentUser(workspaceId);
         const roleNumber: number = response.role;
         const roleString =
           Object.keys(roleMap).find((key) => roleMap[key] === roleNumber) ?? 'Unknown';
 
-        this.currentUserInfo = {
+        this.currentUserInfo[moduleId] = {
           role: roleString,
           workspace: workspaceName,
           cluster: '', // Можно дополнить, если будет нужно

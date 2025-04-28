@@ -80,10 +80,10 @@
             <transition name="fade-slide" mode="out-in">
               <span
                 class="context-badge"
-                :class="getRoleBadgeClass(store.currentUserInfo?.role)"
-                :key="store.currentUserInfo?.role"
+                :class="getRoleBadgeClass(store.currentUserInfo[store.currentUserInfoId]?.role)"
+                :key="store.currentUserInfo[store.currentUserInfoId]?.role"
               >
-                {{ store.currentUserInfo?.role || '—' }}
+                {{ store.currentUserInfo[store.currentUserInfoId]?.role || '—' }}
               </span>
             </transition>
           </div>
@@ -92,8 +92,11 @@
           <div class="context-item">
             <span class="context-label">Кластер:</span>
             <transition name="fade-slide" mode="out-in">
-              <span class="context-value" :key="store.currentUserInfo?.cluster">
-                {{ store.currentUserInfo?.cluster || '—' }}
+              <span
+                class="context-value"
+                :key="store.currentUserInfo[store.currentUserInfoId]?.cluster"
+              >
+                {{ store.currentUserInfo[store.currentUserInfoId]?.cluster || '—' }}
               </span>
             </transition>
           </div>
@@ -102,8 +105,20 @@
           <div class="context-item">
             <span class="context-label">Пространство:</span>
             <transition name="fade-slide" mode="out-in">
-              <span class="context-value" :key="store.currentUserInfo?.workspace">
-                {{ store.currentUserInfo?.workspace || '—' }}
+              <span
+                class="context-value"
+                :key="store.currentUserInfo[store.currentUserInfoId]?.workspace"
+              >
+                {{ store.currentUserInfo[store.currentUserInfoId]?.workspace || '—' }}
+              </span>
+            </transition>
+          </div>
+          <!-- Модуль -->
+          <div class="context-item">
+            <span class="context-label">Модуль:</span>
+            <transition name="fade-slide" mode="out-in">
+              <span class="context-value" :key="store.currentUserInfoId + 1">
+                {{ store.currentUserInfoId + 1 || '—' }}
               </span>
             </transition>
           </div>

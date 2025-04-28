@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import FileTree from '@/components/FileTree.vue';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import Splitter from 'primevue/splitter';
 import SplitterPanel from 'primevue/splitterpanel';
 import { useRenderStore } from '@/stores';
@@ -18,8 +18,23 @@ const fullView = computed(() => store.isFull);
 const dividedModules = ref<Module[]>(store.modules);
 const close = ref<boolean>(true);
 
+watch(
+  fullView,
+  () => {
+    if (fullView.value) {
+      store.currentUserInfoId = 0;
+    }
+  },
+  { immediate: true },
+);
+
 function chahgeView() {
   close.value = !close.value;
+  if (close.value) {
+  }
+}
+function setActiveModule(index: number) {
+  store.currentUserInfoId = index;
 }
 </script>
 
@@ -41,20 +56,28 @@ function chahgeView() {
         <Splitter style="height: 90vh">
           <SplitterPanel class="flex items-center justify-center" :size="50" :minSize="10">
             <Splitter layout="vertical">
-              <SplitterPanel class="flex items-center justify-center" :size="50">
+              <SplitterPanel
+                class="flex items-center justify-center"
+                :size="50"
+                @click="setActiveModule(0)"
+              >
                 <FillModule :module="dividedModules[0]" />
               </SplitterPanel>
-              <SplitterPanel :size="50">
+              <SplitterPanel :size="50" @click="setActiveModule(3)">
                 <FillModule :module="dividedModules[3]" />
               </SplitterPanel>
             </Splitter>
           </SplitterPanel>
           <SplitterPanel class="flex items-center justify-center" :size="50" :minSize="10">
             <Splitter layout="vertical">
-              <SplitterPanel class="flex items-center justify-center" :size="50">
+              <SplitterPanel
+                class="flex items-center justify-center"
+                :size="50"
+                @click="setActiveModule(1)"
+              >
                 <FillModule :module="dividedModules[1]" />
               </SplitterPanel>
-              <SplitterPanel :size="50">
+              <SplitterPanel :size="50" @click="setActiveModule(2)">
                 <FillModule :module="dividedModules[2]" />
               </SplitterPanel>
             </Splitter>
@@ -70,7 +93,7 @@ function chahgeView() {
 .container {
   margin-left: 2vw;
   margin-right: 2vw;
-  padding-top: 10vh;
+  padding-top: 12vh;
   flex: 1;
   display: flex;
   // width: 100%; /* Ширина контейнера */

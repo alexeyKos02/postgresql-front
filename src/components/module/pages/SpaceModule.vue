@@ -13,6 +13,12 @@ const props = defineProps<{
   module: Module;
 }>();
 
+const pageToIndex = {
+  [SpacePage.Clusters]: 0,
+  [SpacePage.Users]: 1,
+  [SpacePage.Security]: 2,
+} as const;
+
 // ✅ Добавляем вычисляемое свойство для workspace
 const workspace = computed(() => store.currentWorkspaces[props.module.location]);
 
@@ -48,9 +54,16 @@ const buttons = reactive([
   <div class="modal-header">
     <h1>{{ workspace?.name || 'Кластер не выбран' }}</h1>
   </div>
-  <ButtonsComponent :buttons="buttons"></ButtonsComponent>
+  <ButtonsComponent
+    :buttons="buttons"
+    :activePage="module.spacePage ? pageToIndex[module.spacePage] : -1"
+  />
   <div class="main-content">
-    <UsersComponents v-if="module.spacePage === SpacePage.Users" :workspace-id="workspace?.id" />
+    <UsersComponents
+      v-if="module.spacePage === SpacePage.Users"
+      :workspace-id="workspace?.id"
+      :module-id="module.location"
+    />
     <ClustersComponent
       :workspace-id="workspace?.id"
       :module-id="module.location"

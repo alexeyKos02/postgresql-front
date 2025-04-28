@@ -28,6 +28,7 @@ import type { TreeNode } from 'primevue/treenode';
 import Tree from 'primevue/tree';
 import { useRenderStore } from '@/stores';
 import { storeToRefs } from 'pinia';
+import { TypeModule } from '@/types/components';
 
 const store = useRenderStore();
 const { workspaces } = storeToRefs(store); // Референс на store
@@ -63,8 +64,8 @@ const onNodeSelect = (node: TreeNode) => {
     return;
   }
 
-  store.currentWorkspaces[0] = selectedWorkspace;
-
+  store.currentWorkspaces[store.currentUserInfoId] = selectedWorkspace;
+  store.modules[store.currentUserInfoId].type = TypeModule.Space;
   // toast.add({
   //   severity: 'success',
   //   summary: 'Пространство выбрано',

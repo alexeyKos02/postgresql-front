@@ -68,8 +68,8 @@ async function remove(id: string) {
 }
 
 function action() {
-  if (store.modules[0]) {
-    store.modules[0].type = TypeModule.AddSecurityGroup;
+  if (store.modules[props.moduleId]) {
+    store.modules[props.moduleId].type = TypeModule.AddSecurityGroup;
   }
 }
 

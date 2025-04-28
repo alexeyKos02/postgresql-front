@@ -9,7 +9,7 @@ import { useToast } from 'primevue/usetoast';
 import { TypeModule } from '@/types/components';
 import { getWorkspaceUsers } from '@/utils/api';
 
-const props = defineProps<{ workspaceId: number }>();
+const props = defineProps<{ workspaceId: number; moduleId: number }>();
 
 const toast = useToast();
 const store = useRenderStore();
@@ -45,8 +45,8 @@ function remove(id: string) {
 }
 
 function action() {
-  if (store.modules[0]) {
-    store.modules[0].type = TypeModule.AddUser;
+  if (store.modules[props.moduleId]) {
+    store.modules[props.moduleId].type = TypeModule.AddUser;
   }
 }
 

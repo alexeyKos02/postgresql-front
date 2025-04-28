@@ -2,8 +2,11 @@
 import { useRenderStore } from '@/stores';
 import { ref, computed } from 'vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { TypeModule } from '@/types/components';
+import { TypeModule, type Module } from '@/types/components';
 
+const props = defineProps<{
+  module?: Module;
+}>();
 const store = useRenderStore();
 
 const isFull = computed(() => store.isFull);
@@ -14,31 +17,32 @@ const togglePanel = () => {
 };
 
 const goingBack = computed(() => {
-  return isFull.value && store.moduleTypeHistory[0]?.length > 1;
+  // return isFull.value && store.moduleTypeHistory[props.module?.location ?? 0]?.length > 1;
+  return store.moduleTypeHistory[props.module?.location ?? 0]?.length > 1;
 });
 
 const backAction = () => {
-  const history = store.moduleTypeHistory[0];
+  const history = store.moduleTypeHistory[props.module?.location ?? 0];
   if (history.length > 1) {
     history.pop();
     const previous = history[history.length - 1];
-    store.modules[0].type = previous;
+    store.modules[props.module?.location ?? 0].type = previous;
   }
 };
 
 const closeModal = () => {
-  const centerModule = store.modules[0];
+  const centerModule = store.modules[props.module?.location ?? 0];
   if (centerModule) {
-    centerModule.isActive = false;
-    centerModule.type = TypeModule.Space;
-    store.moduleTypeHistory[0] = [];
+    centerModule.type = TypeModule.Default;
+    store.moduleTypeHistory[props.module?.location ?? 0] = [];
     panelOpen.value = false;
+    centerModule.isActive = false;
   }
 };
 </script>
 
 <template>
-  <div v-if="store.modules[0]?.isActive" class="wrapper">
+  <div v-if="store.modules[props.module?.location ?? 0]?.isActive" class="wrapper">
     <div class="module" :class="{ 'module--center': isFull }">
       <!-- 🌟 Кнопка-шестерёнка -->
       <div class="toggle-button" @click="togglePanel">

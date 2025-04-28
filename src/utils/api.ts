@@ -32,6 +32,7 @@ import type {
   DeadlockStat,
   ReplicationSettingsRequest,
   WorkspaceUserMe,
+  ClusterResourceUsage,
 } from '@/types/api';
 import axios from 'axios';
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
@@ -499,5 +500,16 @@ export const updateReplicationSettings = async (
 
 export const getCurrentUser = async (workspaceId: number): Promise<WorkspaceUserMe> => {
   const response = await request<WorkspaceUserMe>('get', `/workspaces/${workspaceId}/users/me`);
+  return response.data;
+};
+
+export const getClusterResourceUsage = async (
+  workspaceId: number,
+  clusterId: number,
+): Promise<ClusterResourceUsage[]> => {
+  const response = await request<ClusterResourceUsage[]>(
+    'get',
+    `/workspace/${workspaceId}/cluster/${clusterId}/monitoring/resources`,
+  );
   return response.data;
 };

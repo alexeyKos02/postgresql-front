@@ -19,7 +19,7 @@ watch(
   () => workSpace.value?.id,
   async (newId) => {
     if (newId) {
-      await store.fetchCurrentUserInfo(newId, workSpace.value.name);
+      await store.fetchCurrentUserInfo(newId, workSpace.value.name, 0);
     }
   },
   { immediate: true },

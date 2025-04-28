@@ -434,6 +434,39 @@
         </div>
       </div>
     </transition>
+
+    <!-- Мониторинг ресурсов -->
+    <div class="header-toggle" style="margin-top: 32px">
+      <h1 class="page-title">Мониторинг ресурсов</h1>
+      <button class="toggle-btn" @click="expandedResources = !expandedResources">
+        {{ expandedResources ? 'Скрыть' : 'Показать' }}
+      </button>
+    </div>
+
+    <transition name="fade">
+      <div v-if="expandedResources" class="details-card">
+        <div v-if="loadingResources" class="loading-text">Загрузка...</div>
+        <div v-else class="resources-grid">
+          <div v-for="(resource, index) in monitoringResources" :key="index" class="resource-card">
+            <div class="resource-title">{{ resource.pod }}</div>
+            <div class="resource-knobs">
+              <div class="knob-wrapper">
+                <AnimatedKnob :targetValue="resource.cpuUsage * 100" :size="100" />
+                <div class="knob-label">CPU</div>
+              </div>
+              <div class="knob-wrapper">
+                <AnimatedKnob :targetValue="resource.memoryUsage * 100" :size="100" />
+                <div class="knob-label">Memory</div>
+              </div>
+              <div class="knob-wrapper">
+                <AnimatedKnob :targetValue="resource.storageUsage * 100" :size="100" />
+                <div class="knob-label">Storage</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -458,6 +491,7 @@ import {
   createBackup,
   getBackup,
   deleteDatabaseUser,
+  getClusterResourceUsage,
 } from '@/utils/api';
 import { useRenderStore } from '@/stores';
 import { storeToRefs } from 'pinia';
@@ -473,6 +507,7 @@ import type {
   CreateBackupRequest,
   BackupScheduleRequest,
   BackupData,
+  ClusterResourceUsage,
 } from '@/types/api';
 import type { ClusterUser, CreateDatabaseUser } from '@/types/entities';
 import InputText from 'primevue/inputtext';
@@ -483,11 +518,14 @@ import Skeleton from 'primevue/skeleton';
 import Calendar from 'primevue/calendar';
 import { useToast } from 'primevue';
 import CronPresetSelector from '@/components/CronPresetSelector.vue';
+import AnimatedKnob from '@/components/AnimatedKnob.vue';
 
 const props = defineProps<{
   workspaceId: number;
   moduleId: number;
 }>();
+
+let resourceInterval: ReturnType<typeof setInterval> | null = null;
 
 const toast = useToast();
 const store = useRenderStore();
@@ -536,6 +574,10 @@ const backups = ref<BackupData[]>([]);
 const newBackup = ref<CreateBackupRequest>({ method: 'stream' });
 const schedule = ref<BackupScheduleRequest>({ cronExpression: '', method: 'stream' });
 const recovery = ref<RecoveryFromBackupRequest>({ backupName: '' });
+
+const monitoringResources = ref<ClusterResourceUsage[]>([]);
+const loadingResources = ref(false);
+const expandedResources = ref(false);
 
 watch(expandedReplicationHosts, async (opened) => {
   if (opened && cluster.value && replicationHosts.value.length === 0) {
@@ -616,7 +658,7 @@ watch(
       cluster.value = await getCluster(props.workspaceId, newClusterId);
       databases.value = await getDatabases(props.workspaceId, newClusterId);
       users.value = await getDatabasesUsers(props.workspaceId, newClusterId);
-      store.currentUserInfo.cluster = cluster.value.systemName;
+      store.currentUserInfo[store.currentUserInfoId].cluster = cluster.value.systemName;
       topQueries.value = [];
       loadingQueries.value = true;
       try {
@@ -684,9 +726,70 @@ watch(expandedBackup, async (visible) => {
     }
   }
 });
-onUnmounted(() => {
-  store.currentUserInfo.cluster = '';
+
+watch(expandedResources, async (opened) => {
+  if (opened && cluster.value && monitoringResources.value.length === 0) {
+    loadingResources.value = true;
+    try {
+      monitoringResources.value = await getClusterResourceUsage(
+        props.workspaceId,
+        cluster.value.id,
+      );
+    } catch (err) {
+      console.error('Ошибка загрузки ресурсов:', err);
+      monitoringResources.value = [];
+    } finally {
+      loadingResources.value = false;
+    }
+  }
 });
+
+watch(expandedResources, async (opened) => {
+  if (opened && cluster.value) {
+    loadingResources.value = true;
+    try {
+      monitoringResources.value = await getClusterResourceUsage(
+        props.workspaceId,
+        cluster.value.id,
+      );
+    } catch (err) {
+      console.error('Ошибка загрузки ресурсов:', err);
+      monitoringResources.value = [];
+    } finally {
+      loadingResources.value = false;
+    }
+
+    // Запускаем периодическую подгрузку
+    if (!resourceInterval) {
+      resourceInterval = setInterval(async () => {
+        try {
+          const updatedResources = await getClusterResourceUsage(
+            props.workspaceId,
+            cluster.value!.id,
+          );
+          monitoringResources.value = updatedResources;
+        } catch (err) {
+          console.error('Ошибка обновления ресурсов:', err);
+        }
+      }, 1000); // каждые 10 секунд
+    }
+  } else {
+    // Если закрыли секцию - останавливаем интервал
+    if (resourceInterval) {
+      clearInterval(resourceInterval);
+      resourceInterval = null;
+    }
+  }
+});
+
+onUnmounted(() => {
+  if (resourceInterval) {
+    clearInterval(resourceInterval);
+    resourceInterval = null;
+  }
+  store.currentUserInfo[store.currentUserInfoId].cluster = '';
+});
+
 const displayData = computed(() => {
   if (!cluster.value) return {};
   return {
@@ -1367,6 +1470,49 @@ async function submitRecovery() {
 
   @media (max-width: 640px) {
     grid-template-columns: 1fr;
+  }
+}
+.resources-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+  margin-top: 20px;
+}
+
+.resource-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.resource-title {
+  font-weight: 600;
+  font-size: 16px;
+  margin-bottom: 16px;
+  color: #1f2937;
+}
+
+.resource-knobs {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+}
+
+.knob-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .knob-label {
+    margin-top: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #6b7280;
   }
 }
 </style>
