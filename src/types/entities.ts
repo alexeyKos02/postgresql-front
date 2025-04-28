@@ -31,3 +31,19 @@ export interface SecurityGroup {
   name: string;
   id: number;
 }
+
+export interface currentUser {
+  role: string;
+  workspace: string;
+  cluster: string;
+}
+export const roleMap: Record<string, number> = {
+  Viewer: 0,
+  Editor: 1,
+  Admin: 2,
+};
+export const roles = [
+  { label: 'Admin', value: 'Admin' },
+  { label: 'Editor', value: 'Editor' },
+  { label: 'Viewer', value: 'Viewer' },
+];

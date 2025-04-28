@@ -73,6 +73,42 @@
       </template>
 
       <template #end>
+        <div class="user-context">
+          <!-- Роль -->
+          <div class="context-item">
+            <span class="context-label">Роль:</span>
+            <transition name="fade-slide" mode="out-in">
+              <span
+                class="context-badge"
+                :class="getRoleBadgeClass(store.currentUserInfo?.role)"
+                :key="store.currentUserInfo?.role"
+              >
+                {{ store.currentUserInfo?.role || '—' }}
+              </span>
+            </transition>
+          </div>
+
+          <!-- Кластер -->
+          <div class="context-item">
+            <span class="context-label">Кластер:</span>
+            <transition name="fade-slide" mode="out-in">
+              <span class="context-value" :key="store.currentUserInfo?.cluster">
+                {{ store.currentUserInfo?.cluster || '—' }}
+              </span>
+            </transition>
+          </div>
+
+          <!-- Пространство -->
+          <div class="context-item">
+            <span class="context-label">Пространство:</span>
+            <transition name="fade-slide" mode="out-in">
+              <span class="context-value" :key="store.currentUserInfo?.workspace">
+                {{ store.currentUserInfo?.workspace || '—' }}
+              </span>
+            </transition>
+          </div>
+        </div>
+
         <Avatar
           ref="avatarButton"
           image="https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png"
@@ -131,6 +167,19 @@ const isFullViewEnabled = ref(false);
 
 // Blur fix
 let blurTimeout: ReturnType<typeof setTimeout> | null = null;
+
+function getRoleBadgeClass(role?: string): string {
+  switch (role) {
+    case 'Admin':
+      return 'badge-admin';
+    case 'Editor':
+      return 'badge-editor';
+    case 'Viewer':
+      return 'badge-viewer';
+    default:
+      return 'badge-unknown';
+  }
+}
 
 // Поповер переключатели
 const toggle = (id: string) => {
@@ -326,5 +375,73 @@ onMounted(async () => {
       margin-left: 0.5rem;
     }
   }
+}
+.user-context {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin-right: 1rem;
+  font-size: 12px;
+  color: #4b5563;
+  text-align: right;
+
+  .context-item {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    line-height: 1.3;
+  }
+
+  .context-label {
+    font-weight: 600;
+    color: #374151;
+  }
+
+  .context-value {
+    font-weight: 500;
+    color: #111827;
+    max-width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+.context-badge {
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.badge-admin {
+  background-color: #10b981; // зелёный
+}
+
+.badge-editor {
+  background-color: #f59e0b; // жёлтый
+}
+
+.badge-viewer {
+  background-color: #3b82f6; // синий
+}
+
+.badge-unknown {
+  background-color: #6b7280; // серый
+}
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: all 0.25s ease;
+}
+
+.fade-slide-enter-from {
+  opacity: 0;
+  transform: translateY(-5px);
+}
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(5px);
 }
 </style>

@@ -59,6 +59,7 @@ import { useToast } from 'primevue/usetoast';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { inviteUserToWorkspace } from '@/utils/api';
 import type { InviteUserDto } from '@/types/api';
+import { roleMap, roles } from '@/types/entities';
 
 const props = defineProps<{ workspaceId: number }>();
 const toast = useToast();
@@ -67,17 +68,11 @@ const email = ref('');
 const role = ref('');
 const emailTouched = ref(false);
 
-const roles = [
-  { label: 'Admin', value: 'Admin' },
-  { label: 'Editor', value: 'Editor' },
-  { label: 'Viewer', value: 'Viewer' },
-];
-
-const roleMap: Record<string, number> = {
-  Viewer: 0,
-  Editor: 1,
-  Admin: 2,
-};
+// const roles = [
+//   { label: 'Admin', value: 'Admin' },
+//   { label: 'Editor', value: 'Editor' },
+//   { label: 'Viewer', value: 'Viewer' },
+// ];
 
 function isValidEmail(value: string): boolean {
   const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

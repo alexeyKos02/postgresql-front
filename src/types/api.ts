@@ -267,3 +267,11 @@ export interface ReplicationSettingsRequest {
   syncReplicas: number;
   dataDurability: string;
 }
+export interface WorkspaceUserMe {
+  id: number;
+  workspaceId: number;
+  role: number;
+  email: string;
+  firstName: string;
+  lastName: string;
+}

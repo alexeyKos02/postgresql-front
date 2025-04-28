@@ -14,6 +14,17 @@ const store = useRenderStore();
 const module = ref<Module | null>(store.modules[0]);
 const workSpace = computed(() => store.currentWorkspaces[0]);
 
+// 👉 Автообновление currentUserInfo при смене workspace
+watch(
+  () => workSpace.value?.id,
+  async (newId) => {
+    if (newId) {
+      await store.fetchCurrentUserInfo(newId, workSpace.value.name);
+    }
+  },
+  { immediate: true },
+);
+
 // Слежение за изменением module?.type и добавление в историю
 watch(
   () => module.value?.type,

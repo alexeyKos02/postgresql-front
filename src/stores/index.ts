@@ -8,6 +8,7 @@ import type {
   ClusterData,
 } from '@/types/api';
 import { SpacePage, TypeModule, type Module } from '@/types/components';
+import { roleMap, type currentUser } from '@/types/entities';
 import {
   createCluster,
   createWorkspace,
@@ -16,6 +17,7 @@ import {
   getClusters,
   loginRequest,
   signupRequest,
+  getCurrentUser,
 } from '@/utils/api';
 import { defineStore } from 'pinia';
 
@@ -33,7 +35,7 @@ export const useRenderStore = defineStore('render', {
         cluster: { name: 'first' },
       },
       {
-        type: TypeModule.AddUser,
+        type: TypeModule.AddSecurityGroup,
         isActive: true,
         location: 1,
         spacePage: SpacePage.Clusters,
@@ -66,6 +68,7 @@ export const useRenderStore = defineStore('render', {
 
     clusters: [[], [], [], []] as ClusterData[][],
     singleClusters: [0, 0, 0, 0] as number[],
+    currentUserInfo: { role: '', workspace: '', cluster: '' } as currentUser,
   }),
 
   actions: {
@@ -184,6 +187,25 @@ export const useRenderStore = defineStore('render', {
 
       if (last !== moduleType) {
         history.push(moduleType);
+      }
+    },
+
+    async fetchCurrentUserInfo(workspaceId: number, workspaceName: string) {
+      try {
+        const response = await getCurrentUser(workspaceId);
+        const roleNumber: number = response.role;
+        const roleString =
+          Object.keys(roleMap).find((key) => roleMap[key] === roleNumber) ?? 'Unknown';
+
+        this.currentUserInfo = {
+          role: roleString,
+          workspace: workspaceName,
+          cluster: '', // Можно дополнить, если будет нужно
+        };
+
+        console.log('Информация о текущем пользователе обновлена:', this.currentUserInfo);
+      } catch (error) {
+        console.error('Ошибка при получении информации о текущем пользователе:', error);
       }
     },
   },

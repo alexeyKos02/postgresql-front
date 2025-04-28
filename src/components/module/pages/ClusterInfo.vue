@@ -122,7 +122,10 @@
                 <label>Дата истечения</label>
                 <Calendar
                   :modelValue="newUser.expiryDate ? new Date(newUser.expiryDate) : null"
-                  @update:modelValue="(value) => (newUser.expiryDate = value?.toString() || '')"
+                  @update:modelValue="
+                    (value) =>
+                      (newUser.expiryDate = value instanceof Date ? value.toISOString() : '')
+                  "
                   showIcon
                   showTime
                   hourFormat="24"
@@ -137,7 +140,7 @@
           </div>
         </transition>
 
-        <TableComponent :clusterUsers="users" />
+        <TableComponent :clusterUsers="users" :functions="[deleteUser]" />
       </div>
     </transition>
 
@@ -435,7 +438,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onUnmounted } from 'vue';
 import {
   getCluster,
   getDatabases,
@@ -454,6 +457,7 @@ import {
   scheduleBackup,
   createBackup,
   getBackup,
+  deleteDatabaseUser,
 } from '@/utils/api';
 import { useRenderStore } from '@/stores';
 import { storeToRefs } from 'pinia';
@@ -612,7 +616,7 @@ watch(
       cluster.value = await getCluster(props.workspaceId, newClusterId);
       databases.value = await getDatabases(props.workspaceId, newClusterId);
       users.value = await getDatabasesUsers(props.workspaceId, newClusterId);
-
+      store.currentUserInfo.cluster = cluster.value.systemName;
       topQueries.value = [];
       loadingQueries.value = true;
       try {
@@ -680,7 +684,9 @@ watch(expandedBackup, async (visible) => {
     }
   }
 });
-
+onUnmounted(() => {
+  store.currentUserInfo.cluster = '';
+});
 const displayData = computed(() => {
   if (!cluster.value) return {};
   return {
@@ -806,6 +812,29 @@ async function deleteDb(databaseName: string) {
   } catch (err) {
     console.error('Ошибка удаления базы:', err);
     alert('Не удалось удалить базу данных');
+  }
+}
+async function deleteUser(username: string) {
+  if (!cluster.value) return;
+  const confirmed = confirm(`Удалить пользователя "${username}"?`);
+  if (!confirmed) return;
+
+  try {
+    await deleteDatabaseUser(props.workspaceId, cluster.value.id, username);
+    users.value = await getDatabasesUsers(props.workspaceId, cluster.value.id);
+    toast.add({
+      severity: 'success',
+      summary: 'Пользователь удалён',
+      life: 3000,
+    });
+  } catch (err) {
+    console.error('Ошибка при удалении пользователя:', err);
+    toast.add({
+      severity: 'error',
+      summary: 'Ошибка',
+      detail: 'Не удалось удалить пользователя',
+      life: 3000,
+    });
   }
 }
 

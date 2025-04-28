@@ -37,9 +37,9 @@ function openInfo() {
         <Tag v-if="user.role === 1" severity="info" value="EDITOR" rounded class="tag" />
         <Tag v-if="user.role === 0" severity="info" value="VIEWER" rounded class="tag" />
       </div>
-      <button class="btn-icon" @click.stop="props.functions?.[0]?.(user.email)">
+      <!-- <button class="btn-icon" @click.stop="props.functions?.[0]?.(user.email)">
         <FontAwesomeIcon icon="fa-solid fa-trash" />
-      </button>
+      </button> -->
     </div>
 
     <!-- Security Groups -->

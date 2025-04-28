@@ -65,12 +65,12 @@ const onNodeSelect = (node: TreeNode) => {
 
   store.currentWorkspaces[0] = selectedWorkspace;
 
-  toast.add({
-    severity: 'success',
-    summary: 'Пространство выбрано',
-    detail: selectedWorkspace.name,
-    life: 3000,
-  });
+  // toast.add({
+  //   severity: 'success',
+  //   summary: 'Пространство выбрано',
+  //   detail: selectedWorkspace.name,
+  //   life: 3000,
+  // });
 };
 </script>
 
