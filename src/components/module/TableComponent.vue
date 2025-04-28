@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineProps } from 'vue';
+import { defineProps, computed } from 'vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import Tag from 'primevue/tag';
 import { useRenderStore } from '@/stores';
@@ -20,6 +20,9 @@ const props = defineProps<{
 
 const store = useRenderStore();
 
+const currentUser = computed(() => store.currentUserInfo[store.currentUserInfoId]);
+const isAdmin = computed(() => currentUser.value?.role === 'Admin');
+
 function openInfo() {
   if (store.modules[0]) {
     store.modules[0].type = TypeModule.ClusterInfo;
@@ -37,9 +40,13 @@ function openInfo() {
         <Tag v-if="user.role === 1" severity="info" value="EDITOR" rounded class="tag" />
         <Tag v-if="user.role === 0" severity="info" value="VIEWER" rounded class="tag" />
       </div>
-      <!-- <button class="btn-icon" @click.stop="props.functions?.[0]?.(user.email)">
+      <button
+        v-if="isAdmin"
+        class="btn-icon"
+        @click.stop="props.functions?.[0]?.(user.email)"
+      >
         <FontAwesomeIcon icon="fa-solid fa-trash" />
-      </button> -->
+      </button>
     </div>
 
     <!-- Security Groups -->
@@ -47,7 +54,11 @@ function openInfo() {
       <div class="info">
         <span>{{ group.name }}</span>
       </div>
-      <button class="btn-icon" @click.stop="props.functions?.[0]?.(String(group.id))">
+      <button
+        v-if="isAdmin"
+        class="btn-icon"
+        @click.stop="props.functions?.[0]?.(String(group.id))"
+      >
         <FontAwesomeIcon icon="fa-solid fa-trash" />
       </button>
     </div>
@@ -58,7 +69,11 @@ function openInfo() {
         <FontAwesomeIcon icon="fa-solid fa-database" />
         <span>{{ db }}</span>
       </div>
-      <button class="btn-icon" @click.stop="props.functions?.[0]?.(db)">
+      <button
+        v-if="isAdmin"
+        class="btn-icon"
+        @click.stop="props.functions?.[0]?.(db)"
+      >
         <FontAwesomeIcon icon="fa-solid fa-trash" />
       </button>
     </div>
@@ -76,7 +91,6 @@ function openInfo() {
           rounded
           class="tag"
         />
-
         <Tag
           v-if="user.roles?.length"
           severity="success"
@@ -85,7 +99,11 @@ function openInfo() {
           class="tag"
         />
       </div>
-      <button class="btn-icon" @click.stop="props.functions?.[0]?.(user.username)">
+      <button
+        v-if="isAdmin"
+        class="btn-icon"
+        @click.stop="props.functions?.[0]?.(user.username)"
+      >
         <FontAwesomeIcon icon="fa-solid fa-trash" />
       </button>
     </div>
@@ -202,6 +220,7 @@ function openInfo() {
   font-size: 12px;
   padding: 2px 8px;
 }
+
 .scroll-section {
   max-height: 260px;
   overflow-y: auto;

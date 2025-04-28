@@ -31,7 +31,7 @@
     <div class="header-toggle" style="margin-top: 32px">
       <h1 class="page-title">Базы данных</h1>
       <div class="right-controls">
-        <div class="icon" @click="showAddForm = !showAddForm">
+        <div class="icon" @click="showAddForm = !showAddForm" v-if="user.role !== 'Viewer'">
           <FontAwesomeIcon icon="fa-solid fa-plus" />
         </div>
         <button class="toggle-btn" @click="expandedDatabases = !expandedDatabases">
@@ -66,7 +66,7 @@
     <div class="header-toggle" style="margin-top: 32px">
       <h1 class="page-title">Пользователи</h1>
       <div class="right-controls">
-        <div class="icon" @click="showUserForm = !showUserForm">
+        <div class="icon" @click="showUserForm = !showUserForm" v-if="user.role !== 'Viewer'">
           <FontAwesomeIcon icon="fa-solid fa-plus" />
         </div>
         <button class="toggle-btn" @click="expandedUsers = !expandedUsers">
@@ -295,10 +295,10 @@
     <div class="header-toggle" style="margin-top: 32px">
       <h1 class="page-title">Replication Hosts</h1>
       <div class="right-controls">
-        <div class="icon" @click="handleAddReplicationHost">
+        <div class="icon" @click="handleAddReplicationHost" v-if="user.role !== 'Viewer'">
           <FontAwesomeIcon icon="fa-solid fa-plus" />
         </div>
-        <div class="icon" @click="expandedReplicationSettings = !expandedReplicationSettings">
+        <div class="icon" @click="expandedReplicationSettings = !expandedReplicationSettings" v-if="user.role !== 'Viewer'">
           <FontAwesomeIcon icon="fa-solid fa-gear" />
         </div>
         <button class="toggle-btn" @click="expandedReplicationHosts = !expandedReplicationHosts">
@@ -344,7 +344,7 @@
     </transition>
 
     <!-- Бэкапы -->
-    <div class="header-toggle" style="margin-top: 32px">
+    <div class="header-toggle" style="margin-top: 32px" v-if="user.role !== 'Viewer'">
       <h1 class="page-title">Резервное копирование</h1>
       <div class="right-controls">
         <div class="icon" @click="showBackupForm = !showBackupForm">
@@ -353,7 +353,7 @@
         <div class="icon" @click="showScheduleForm = !showScheduleForm">
           <FontAwesomeIcon icon="fa-solid fa-clock" v-tooltip="'Настроить расписание'" />
         </div>
-        <div class="icon" @click="showRecoveryForm = !showRecoveryForm">
+        <div class="icon" @click="showRecoveryForm = !showRecoveryForm" v-if="user.role === 'Admin'">
           <FontAwesomeIcon icon="fa-solid fa-rotate-left" v-tooltip="'Восстановление из бэкапа'" />
         </div>
         <button class="toggle-btn" @click="expandedBackup = !expandedBackup">
@@ -578,6 +578,8 @@ const recovery = ref<RecoveryFromBackupRequest>({ backupName: '' });
 const monitoringResources = ref<ClusterResourceUsage[]>([]);
 const loadingResources = ref(false);
 const expandedResources = ref(false);
+
+const user = computed(()=> store.currentUserInfo[store.currentUserInfoId]);
 
 watch(expandedReplicationHosts, async (opened) => {
   if (opened && cluster.value && replicationHosts.value.length === 0) {

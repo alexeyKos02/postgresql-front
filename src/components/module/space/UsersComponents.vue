@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { type User } from '@/types/entities';
 import TableComponent from '../TableComponent.vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
@@ -16,6 +16,8 @@ const store = useRenderStore();
 
 const users = ref<User[]>([]);
 const loading = ref(true);
+
+const user = computed(()=> store.currentUserInfo[store.currentUserInfoId]);
 
 async function fetchUsers(workspaceId: number) {
   if (props.workspaceId) {
@@ -66,7 +68,7 @@ watch(
 
 <template>
   <div>
-    <div class="icon" @click="action">
+    <div class="icon" @click="action" v-if="user.role !== 'Viewer'">
       <FontAwesomeIcon icon="fa-solid fa-plus" />
     </div>
 

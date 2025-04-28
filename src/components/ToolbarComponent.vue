@@ -8,27 +8,36 @@
           <img class="logo" alt="icon" src="../assets/icon.svg" />
 
           <!-- Поповеры -->
-          <CustomPopover
-            label="Кластер"
-            popoverId="cluster"
-            :popupOptions="popupOptions"
-            :customToggle="toggle"
-            :customOpenNewModule="() => openNewModule('cluster')"
-          />
-          <CustomPopover
-            label="Пользователи"
-            popoverId="users"
-            :popupOptions="popupOptions"
-            :customToggle="toggle"
-            :customOpenNewModule="() => openNewModule('users')"
-          />
-          <CustomPopover
-            label="securityGroups"
-            popoverId="securityGroups"
-            :popupOptions="popupOptions"
-            :customToggle="toggle"
-            :customOpenNewModule="() => openNewModule('securityGroups')"
-          />
+          <div v-tooltip.bottom="isViewer ? 'Недоступно для Viewer' : ''">
+            <CustomPopover
+              label="Кластер"
+              popoverId="cluster"
+              :popupOptions="popupOptions"
+              :customToggle="toggle"
+              :customOpenNewModule="() => openNewModule('cluster')"
+              :disabled="isViewer"
+            />
+          </div>
+          <div v-tooltip.bottom="isViewer ? 'Недоступно для Viewer' : ''">
+            <CustomPopover
+              label="Пользователи"
+              popoverId="users"
+              :popupOptions="popupOptions"
+              :customToggle="toggle"
+              :customOpenNewModule="() => openNewModule('users')"
+              :disabled="isViewer"
+            />
+          </div>
+          <div v-tooltip.bottom="isViewer ? 'Недоступно для Viewer' : ''">
+            <CustomPopover
+              label="securityGroups"
+              popoverId="securityGroups"
+              :popupOptions="popupOptions"
+              :customToggle="toggle"
+              :customOpenNewModule="() => openNewModule('securityGroups')"
+              :disabled="isViewer"
+            />
+          </div>
 
           <!-- Добавить пространство -->
           <div v-if="isAddingWorkspace" class="add-workspace-inline">
@@ -39,36 +48,33 @@
               @blur="handleBlur"
               autofocus
               class="workspace-input"
-              :disabled="isLoading"
+              :disabled="isViewer || isLoading"
             />
             <Button
               v-if="!isLoading"
               icon="pi pi-check"
               class="p-button-text p-button-success"
               @click="confirmAddWorkspace"
-              :disabled="!workspaceName.trim()"
+              :disabled="isViewer || !workspaceName.trim()"
             />
             <Button
               v-if="!isLoading"
               icon="pi pi-times"
               class="p-button-text p-button-secondary"
               @click="cancelAddWorkspace"
+              :disabled="isViewer"
             />
-            <i
-              v-if="isLoading"
-              class="pi pi-spin pi-spinner text-gray-500"
-              style="font-size: 1.4rem"
-            ></i>
           </div>
-
-          <Button
-            v-else
-            label="Добавить пространство"
-            icon="pi pi-plus"
-            class="add-workspace-button"
-            @click="startAddingWorkspace"
-            text
-          />
+          <div v-else v-tooltip.bottom="isViewer ? 'Недоступно для Viewer' : ''">
+            <Button
+              label="Добавить пространство"
+              icon="pi pi-plus"
+              class="add-workspace-button"
+              @click="startAddingWorkspace"
+              text
+              :disabled="isViewer"
+            />
+          </div>
         </div>
       </template>
 
@@ -152,7 +158,7 @@
 <script setup lang="ts">
 import Toolbar from 'primevue/toolbar';
 import Avatar from 'primevue/avatar';
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import Toast from 'primevue/toast';
 import Button from 'primevue/button';
 import CustomPopover from './CustomPopover.vue';
@@ -176,6 +182,8 @@ const isLoading = ref(false);
 // Настройки панели
 const settingsPanel = ref();
 const avatarButton = ref();
+const currentUser = computed(() => store.currentUserInfo[store.currentUserInfoId]);
+const isViewer = computed(() => currentUser.value?.role === 'Viewer');
 
 // Полноразмерный формат
 const isFullViewEnabled = ref(false);

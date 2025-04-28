@@ -55,7 +55,7 @@ const validateForm = (): boolean => {
     isValid = false;
   }
 
-  if (form.password.length < 6) {
+  if (form.password.length < 2) {
     errors.password = 'Пароль должен быть не менее 6 символов.';
     isValid = false;
   }

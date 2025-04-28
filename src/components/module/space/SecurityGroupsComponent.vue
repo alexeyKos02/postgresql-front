@@ -5,7 +5,7 @@ import ScrollPanel from 'primevue/scrollpanel';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { useRenderStore } from '@/stores';
 import { TypeModule } from '@/types/components';
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import { useToast } from 'primevue/usetoast';
 import { getSecurityGroups, deleteSecurityGroup } from '@/utils/api';
 
@@ -19,6 +19,8 @@ const toast = useToast();
 
 const securityGroups = ref<SecurityGroup[]>([]);
 const loading = ref(true);
+
+const user = computed(()=> store.currentUserInfo[store.currentUserInfoId]);
 
 async function fetchSecurityGroups(workspaceId: number) {
   if (props.workspaceId) {
@@ -89,7 +91,7 @@ watch(
 
 <template>
   <div>
-    <div class="icon" @click="action">
+    <div class="icon" @click="action" v-if="user.role !== 'Viewer'">
       <FontAwesomeIcon icon="fa-solid fa-plus" />
     </div>
 

@@ -1,5 +1,5 @@
 <template>
-  <div class="icon" @click="action">
+  <div class="icon" @click="action" v-if="user.role !== 'Viewer'">
     <FontAwesomeIcon icon="fa-solid fa-plus" />
   </div>
 
@@ -39,7 +39,7 @@
             {{ getStatusInfo(cluster.status).label }}
           </span>
 
-          <div class="btns-panel">
+          <div class="btns-panel" v-if="user.role !== 'Viewer'">
             <button class="btn-icon green" @click.stop="reload(cluster.systemName)">
               <FontAwesomeIcon icon="fa-solid fa-rotate-right" />
             </button>
@@ -65,6 +65,7 @@ import { useToast } from 'primevue/usetoast';
 import { storeToRefs } from 'pinia';
 import ScrollPanel from 'primevue/scrollpanel';
 import { restartCluster, deleteCluster } from '@/utils/api';
+import { roleMap, roles } from '@/types/entities';
 
 const props = defineProps<{
   workspaceId: number;
@@ -77,6 +78,7 @@ const { clusters } = storeToRefs(store);
 const updatedClusterId = ref<number | null>(null);
 const intervalId = ref<number | null>(null);
 
+const user = computed(()=> store.currentUserInfo[store.currentUserInfoId]);
 const currentClusters = computed(() => clusters.value[props.moduleId] || []);
 
 async function fetchClusters() {
