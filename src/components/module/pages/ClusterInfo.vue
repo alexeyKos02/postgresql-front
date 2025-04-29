@@ -1,5 +1,47 @@
 <template>
   <div class="cluster-details">
+    <!-- 📌 Плавающая кнопка открытия мониторинга -->
+    <div
+  class="floating-button"
+  v-if="!showResourcePanel && store.isFull"
+  @click="showResourcePanel = true"
+  v-tooltip="'Мониторинг ресурсов'"
+>
+  <FontAwesomeIcon icon="fa-solid fa-microchip" />
+</div>
+
+<!-- 📊 Плавающая панель мониторинга ресурсов -->
+<transition name="slide-right">
+  <div v-if="showResourcePanel" class="resource-floating-panel">
+    <div class="resource-panel-header">
+      <span>Мониторинг ресурсов</span>
+      <button class="close-panel-btn" @click="showResourcePanel = false">
+        <FontAwesomeIcon icon="fa-solid fa-circle-xmark" />
+      </button>
+    </div>
+    <div v-if="loadingResources" class="loading-text">Загрузка...</div>
+    <div v-else class="resources-grid">
+      <div v-for="(resource, index) in monitoringResources" :key="index" class="resource-card">
+        <div class="resource-title">{{ resource.pod }}</div>
+        <div class="resource-knobs">
+          <div class="knob-wrapper">
+            <AnimatedKnob :targetValue="resource.cpuUsage * 100" :size="100" />
+            <div class="knob-label">CPU</div>
+          </div>
+          <div class="knob-wrapper">
+            <AnimatedKnob :targetValue="resource.memoryUsage * 100" :size="100" />
+            <div class="knob-label">Memory</div>
+          </div>
+          <div class="knob-wrapper">
+            <AnimatedKnob :targetValue="resource.storageUsage * 100" :size="100" />
+            <div class="knob-label">Storage</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</transition>
+
     <!-- Информация о кластере -->
     <div class="header-toggle">
       <h1 class="page-title">Информация о кластере</h1>
@@ -298,7 +340,11 @@
         <div class="icon" @click="handleAddReplicationHost" v-if="user.role !== 'Viewer'">
           <FontAwesomeIcon icon="fa-solid fa-plus" />
         </div>
-        <div class="icon" @click="expandedReplicationSettings = !expandedReplicationSettings" v-if="user.role !== 'Viewer'">
+        <div
+          class="icon"
+          @click="expandedReplicationSettings = !expandedReplicationSettings"
+          v-if="user.role !== 'Viewer'"
+        >
           <FontAwesomeIcon icon="fa-solid fa-gear" />
         </div>
         <button class="toggle-btn" @click="expandedReplicationHosts = !expandedReplicationHosts">
@@ -353,7 +399,11 @@
         <div class="icon" @click="showScheduleForm = !showScheduleForm">
           <FontAwesomeIcon icon="fa-solid fa-clock" v-tooltip="'Настроить расписание'" />
         </div>
-        <div class="icon" @click="showRecoveryForm = !showRecoveryForm" v-if="user.role === 'Admin'">
+        <div
+          class="icon"
+          @click="showRecoveryForm = !showRecoveryForm"
+          v-if="user.role === 'Admin'"
+        >
           <FontAwesomeIcon icon="fa-solid fa-rotate-left" v-tooltip="'Восстановление из бэкапа'" />
         </div>
         <button class="toggle-btn" @click="expandedBackup = !expandedBackup">
@@ -436,7 +486,7 @@
     </transition>
 
     <!-- Мониторинг ресурсов -->
-    <div class="header-toggle" style="margin-top: 32px">
+    <div class="header-toggle" style="margin-top: 32px" v-if="!store.isFull">
       <h1 class="page-title">Мониторинг ресурсов</h1>
       <button class="toggle-btn" @click="expandedResources = !expandedResources">
         {{ expandedResources ? 'Скрыть' : 'Показать' }}
@@ -579,7 +629,45 @@ const monitoringResources = ref<ClusterResourceUsage[]>([]);
 const loadingResources = ref(false);
 const expandedResources = ref(false);
 
-const user = computed(()=> store.currentUserInfo[store.currentUserInfoId]);
+const user = computed(() => store.currentUserInfo[store.currentUserInfoId]);
+
+const showResourcePanel = ref(false);
+
+watch(showResourcePanel, async (opened) => {
+  if (opened && cluster.value) {
+    loadingResources.value = true;
+    try {
+      monitoringResources.value = await getClusterResourceUsage(
+        props.workspaceId,
+        cluster.value.id,
+      );
+    } catch (err) {
+      console.error('Ошибка загрузки ресурсов:', err);
+      monitoringResources.value = [];
+    } finally {
+      loadingResources.value = false;
+    }
+
+    if (!resourceInterval) {
+      resourceInterval = setInterval(async () => {
+        try {
+          const updatedResources = await getClusterResourceUsage(
+            props.workspaceId,
+            cluster.value!.id,
+          );
+          monitoringResources.value = updatedResources;
+        } catch (err) {
+          console.error('Ошибка обновления ресурсов:', err);
+        }
+      }, 10000); // каждые 10 секунд
+    }
+  } else {
+    if (resourceInterval) {
+      clearInterval(resourceInterval);
+      resourceInterval = null;
+    }
+  }
+});
 
 watch(expandedReplicationHosts, async (opened) => {
   if (opened && cluster.value && replicationHosts.value.length === 0) {
@@ -1515,6 +1603,82 @@ async function submitRecovery() {
     font-size: 13px;
     font-weight: 500;
     color: #6b7280;
+  }
+}
+/* 📌 Плавающая кнопка слева */
+.floating-button {
+  position: fixed;
+  top: 250px;
+  left: 10px;
+  width: 48px;
+  height: 48px;
+  background-color: #3498db;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1500;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: #2980b9;
+  }
+}
+
+/* 📊 Плавающая панель мониторинга */
+.resource-floating-panel {
+  position: fixed;
+  top: 12vh;
+  left: 0;
+  width: 400px;
+  height: 80vh;
+  background: white;
+  box-shadow: 4px 0 8px rgba(0, 0, 0, 0.15);
+  padding: 20px;
+  overflow-y: auto;
+  z-index: 1400;
+  display: flex;
+  flex-direction: column;
+
+  @media (max-width: 768px) {
+    width: 90%; /* на мобильных будет ширина 90% */
+  }
+}
+
+/* 📽 Анимация появления слева */
+.slide-right-enter-active,
+.slide-right-leave-active {
+  transition: all 0.3s ease;
+}
+.slide-right-enter-from,
+.slide-right-leave-to {
+  transform: translateX(-100%); /* Было 100%, меняем на -100% */
+  opacity: 0;
+}
+
+/* 📋 Заголовок панели */
+.resource-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+
+/* ❌ Кнопка закрытия панели */
+.close-panel-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #3498db; /* синий цвет системы */
+  cursor: pointer;
+  transition: color 0.3s ease;
+
+  &:hover {
+    color: #267ac8; /* чуть темнее при наведении */
   }
 }
 </style>

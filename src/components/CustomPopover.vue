@@ -10,7 +10,7 @@ const props = defineProps<{
   popupOptions: { name: string; code: string }[];
   customToggle: (id: string) => void;
   customOpenNewModule: (popover: object | null) => void;
-  disabled: boolean
+  disabled: boolean;
 }>();
 
 const op = ref<InstanceType<typeof Popover> | null>(null);
@@ -29,7 +29,7 @@ function openNewModule(popover: object | null) {
 </script>
 
 <template>
-  <Popover ref="op" class="popup" :id="popoverId" >
+  <Popover ref="op" class="popup" :id="popoverId">
     <div class="flex flex-col gap-4">
       <Listbox
         v-model="currentOption"

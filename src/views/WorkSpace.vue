@@ -5,9 +5,10 @@ import Splitter from 'primevue/splitter';
 import SplitterPanel from 'primevue/splitterpanel';
 import { useRenderStore } from '@/stores';
 import RightComponent from '@/components/RightComponent.vue';
-import type { Module } from '@/types/components';
+import { TypeModule, type Module } from '@/types/components';
 import ModuleComponent from '@/components/module/ModuleComponent.vue';
 import FillModule from '@/components/FillModule.vue';
+import type { ClusterData, WorkspaceData } from '@/types/api';
 
 const store = useRenderStore();
 
@@ -23,6 +24,35 @@ watch(
   () => {
     if (fullView.value) {
       store.currentUserInfoId = 0;
+      store.currentWorkspaces.splice(
+        1,
+        3,
+        {} as WorkspaceData,
+        {} as WorkspaceData,
+        {} as WorkspaceData,
+      );
+      store.moduleTypeHistory.splice(
+        1,
+        3,
+        [] as TypeModule[],
+        [] as TypeModule[],
+        [] as TypeModule[],
+      );
+      store.clusters.splice(1, 3, [] as ClusterData[], [] as ClusterData[], [] as ClusterData[]);
+      store.currentUserInfo.splice(
+        1,
+        3,
+        {} as { role: ''; workspace: ''; cluster: '' },
+        {} as { role: ''; workspace: ''; cluster: '' },
+        {} as { role: ''; workspace: ''; cluster: '' },
+      );
+      store.singleClusters.splice(1, 3, 0, 0, 0);
+      store.modules.forEach((module, index) => {
+        if (index >= 1 && index <= 3) {
+          module.isActive = false;
+          module.type = TypeModule.Default;
+        }
+      });
     }
   },
   { immediate: true },

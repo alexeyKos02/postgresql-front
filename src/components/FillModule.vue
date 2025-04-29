@@ -27,13 +27,12 @@ watch(
   { immediate: true },
 );
 
-
 // Слежение за изменением module?.type и добавление в историю
 watch(
   () => module.value?.type,
   (newType, oldType) => {
     if (newType && newType !== oldType) {
-      if(module.value && !module.value.isActive && module.value.type !== TypeModule.Default) {
+      if (module.value && !module.value.isActive && module.value.type !== TypeModule.Default) {
         module.value.isActive = true;
       }
       store.pushModuleTypeToHistory(newType, props.module.location); // 0 — индекс центра

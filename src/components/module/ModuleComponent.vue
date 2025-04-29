@@ -43,7 +43,8 @@ const closeModal = () => {
 
 <template>
   <div v-if="store.modules[props.module?.location ?? 0]?.isActive" class="wrapper">
-    <div class="module" :class="{ 'module--center': isFull }">
+    <div class="module" :class="{ 'module--center': isFull, 'panel-open': panelOpen }">
+
       <!-- 🌟 Кнопка-шестерёнка -->
       <div class="toggle-button" @click="togglePanel">
         <FontAwesomeIcon icon="fa-solid fa-gear" />
@@ -112,12 +113,43 @@ const closeModal = () => {
   justify-content: center;
   cursor: pointer;
   z-index: 1000;
-  transition: background-color 0.3s ease;
+  opacity: 0; /* 🔥 изначально почти прозрачная */
+  transition: opacity 0.3s ease, background-color 0.3s ease, transform 0.3s ease; /* плавная анимация */
+}
+
+.toggle-button {
+  position: absolute;
+  top: 24px;
+  right: 8px;
+  width: 36px;
+  height: 36px;
+  background-color: #3498db;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1000;
+  opacity: 0.1; /* Изначально скрыта */
+  transition: opacity 0.3s ease, background-color 0.3s ease, transform 0.3s ease;
+  &:hover {
+    opacity: 1; /* 🔥 наводишь — проявляется */
+    background-color: #2980b9;
+    transform: scale(1.05); /* чуть увеличивается для эффекта */
+  }
+  /* Когда открыта панель — всегда видна */
+  .module.panel-open & {
+    opacity: 1;
+  }
 
   &:hover {
     background-color: #2980b9;
+    transform: scale(1.05);
   }
 }
+
+
 
 /* ⚙️ Панель управления */
 .floating-panel {

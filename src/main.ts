@@ -26,6 +26,7 @@ import { faDatabase } from '@fortawesome/free-solid-svg-icons';
 import { faClock } from '@fortawesome/free-solid-svg-icons';
 import { faRotateLeft } from '@fortawesome/free-solid-svg-icons';
 import { faUser } from '@fortawesome/free-solid-svg-icons';
+import { faMicrochip } from '@fortawesome/free-solid-svg-icons';
 import Aura from '@primevue/themes/aura';
 import { definePreset } from '@primevue/themes';
 import 'primeicons/primeicons.css';
@@ -50,6 +51,7 @@ library.add(
   faClock,
   faRotateLeft,
   faUser,
+  faMicrochip,
 );
 
 const app = createApp(App);

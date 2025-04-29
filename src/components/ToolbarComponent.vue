@@ -10,12 +10,12 @@
           <!-- Поповеры -->
           <div v-tooltip.bottom="isViewer ? 'Недоступно для Viewer' : ''">
             <CustomPopover
-              label="Кластер"
-              popoverId="cluster"
+              label="Пространство"
+              popoverId="workspace"
               :popupOptions="popupOptions"
               :customToggle="toggle"
-              :customOpenNewModule="() => openNewModule('cluster')"
-              :disabled="isViewer"
+              :customOpenNewModule="() => openNewModule('workspace')"
+              :disabled="false"
             />
           </div>
           <div v-tooltip.bottom="isViewer ? 'Недоступно для Viewer' : ''">
@@ -168,6 +168,8 @@ import { useToast } from 'primevue';
 import OverlayPanel from 'primevue/overlaypanel';
 import InputSwitch from 'primevue/inputswitch';
 import { useRouter } from 'vue-router';
+import { SpacePage, TypeModule } from '@/types/components';
+import { faL } from '@fortawesome/free-solid-svg-icons';
 
 const store = useRenderStore();
 const toast = useToast();
@@ -207,7 +209,7 @@ function getRoleBadgeClass(role?: string): string {
 // Поповер переключатели
 const toggle = (id: string) => {
   switch (id) {
-    case 'cluster':
+    case 'workspace':
       console.log('cluster2');
       break;
     case 'users':
@@ -221,18 +223,48 @@ const toggle = (id: string) => {
 
 // Открытие модулей
 function openNewModule(id: string) {
+  const module = store.modules.find((mod) => mod.isActive === false);
+  const workspace = store.workspaces.find(
+    (wk) => wk.name === store.currentUserInfo[store.currentUserInfoId].workspace,
+  );
+
+  if (!module) {
+    toast.add({
+      severity: 'warn',
+      summary: 'Модули закончились',
+      detail: 'Нет свободного модуля для открытия',
+      life: 3000,
+    });
+    return;
+  }
+
+  if (store.isFull) {
+    store.isFull = false;
+  }
+
   switch (id) {
-    case 'cluster':
-      if (store.modules[0]) store.modules[0].isActive = false;
+    case 'workspace':
+      module.isActive = true;
+      module.type = TypeModule.Space;
       break;
+
     case 'users':
-      console.log('users');
+      module.isActive = true;
+      module.type = TypeModule.AddUser;
       break;
+
     case 'securityGroups':
-      console.log('securityGroups');
+      module.isActive = true;
+      module.type = TypeModule.AddSecurityGroup;
       break;
   }
+
+  if (workspace) {
+    store.currentWorkspaces[module.location] = workspace;
+    store.currentUserInfoId = module.location;
+  }
 }
+
 
 // Добавление пространства
 function startAddingWorkspace() {

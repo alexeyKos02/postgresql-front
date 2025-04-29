@@ -40,11 +40,7 @@ function openInfo() {
         <Tag v-if="user.role === 1" severity="info" value="EDITOR" rounded class="tag" />
         <Tag v-if="user.role === 0" severity="info" value="VIEWER" rounded class="tag" />
       </div>
-      <button
-        v-if="isAdmin"
-        class="btn-icon"
-        @click.stop="props.functions?.[0]?.(user.email)"
-      >
+      <button v-if="isAdmin" class="btn-icon" @click.stop="props.functions?.[0]?.(user.email)">
         <FontAwesomeIcon icon="fa-solid fa-trash" />
       </button>
     </div>
@@ -69,11 +65,7 @@ function openInfo() {
         <FontAwesomeIcon icon="fa-solid fa-database" />
         <span>{{ db }}</span>
       </div>
-      <button
-        v-if="isAdmin"
-        class="btn-icon"
-        @click.stop="props.functions?.[0]?.(db)"
-      >
+      <button v-if="isAdmin" class="btn-icon" @click.stop="props.functions?.[0]?.(db)">
         <FontAwesomeIcon icon="fa-solid fa-trash" />
       </button>
     </div>
@@ -99,11 +91,7 @@ function openInfo() {
           class="tag"
         />
       </div>
-      <button
-        v-if="isAdmin"
-        class="btn-icon"
-        @click.stop="props.functions?.[0]?.(user.username)"
-      >
+      <button v-if="isAdmin" class="btn-icon" @click.stop="props.functions?.[0]?.(user.username)">
         <FontAwesomeIcon icon="fa-solid fa-trash" />
       </button>
     </div>

@@ -17,7 +17,7 @@ const store = useRenderStore();
 const users = ref<User[]>([]);
 const loading = ref(true);
 
-const user = computed(()=> store.currentUserInfo[store.currentUserInfoId]);
+const user = computed(() => store.currentUserInfo[store.currentUserInfoId]);
 
 async function fetchUsers(workspaceId: number) {
   if (props.workspaceId) {

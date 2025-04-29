@@ -20,7 +20,7 @@ const toast = useToast();
 const securityGroups = ref<SecurityGroup[]>([]);
 const loading = ref(true);
 
-const user = computed(()=> store.currentUserInfo[store.currentUserInfoId]);
+const user = computed(() => store.currentUserInfo[store.currentUserInfoId]);
 
 async function fetchSecurityGroups(workspaceId: number) {
   if (props.workspaceId) {

@@ -78,7 +78,7 @@ const { clusters } = storeToRefs(store);
 const updatedClusterId = ref<number | null>(null);
 const intervalId = ref<number | null>(null);
 
-const user = computed(()=> store.currentUserInfo[store.currentUserInfoId]);
+const user = computed(() => store.currentUserInfo[store.currentUserInfoId]);
 const currentClusters = computed(() => clusters.value[props.moduleId] || []);
 
 async function fetchClusters() {
