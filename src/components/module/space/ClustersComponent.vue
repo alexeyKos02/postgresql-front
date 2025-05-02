@@ -188,7 +188,7 @@ function getStatusInfo(status: number) {
   margin-bottom: 1.5rem;
   cursor: pointer;
   font-size: 1.6rem;
-  color: #3498db;
+  color: var(--p-primary-color);
   transition: color 0.3s ease;
   &:hover {
     color: #2980b9;
@@ -226,7 +226,7 @@ function getStatusInfo(status: number) {
 
   &.updated {
     animation: pulse-fade 1.2s ease-in-out;
-    border-color: #3498db;
+    border-color: var(--p-primary-color);
     box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.15);
   }
 
@@ -276,7 +276,7 @@ function getStatusInfo(status: number) {
 
   .card-icon {
     font-size: 20px;
-    color: #3498db;
+    color: var(--p-primary-color);
   }
 
   .cluster-name {
@@ -338,7 +338,7 @@ function getStatusInfo(status: number) {
   background-color: #f0ad4e;
 }
 .status-blue {
-  background-color: #3498db;
+  background-color: var(--p-primary-color);
 }
 .status-gray {
   background-color: #6c757d;
@@ -380,7 +380,7 @@ function getStatusInfo(status: number) {
     }
   }
   &.blue {
-    color: #3498db;
+    color: var(--p-primary-color);
     &:hover {
       background-color: rgba(52, 152, 219, 0.12);
     }

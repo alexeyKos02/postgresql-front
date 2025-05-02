@@ -42,6 +42,7 @@ const nodes = computed<TreeNode[]>(() => [
     label: 'Пространства',
     key: '0',
     icon: 'pi pi-inbox',
+    selectable: false,
     children: workspaces.value.map((workspace, index) => ({
       label: workspace.name,
       key: `0-${index}`,

@@ -14,7 +14,7 @@ const store = useRenderStore();
 const { isLoading } = storeToRefs(store);
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .loader-overlay {
   position: fixed;
   top: 0;
@@ -30,7 +30,7 @@ const { isLoading } = storeToRefs(store);
 
 .loader {
   border: 5px solid #f3f3f3;
-  border-top: 5px solid #3498db;
+  border-top: 5px solid var(--p-primary-color);
   border-radius: 50%;
   width: 50px;
   height: 50px;

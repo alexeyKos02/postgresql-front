@@ -195,7 +195,7 @@ h2 {
 
   &:focus {
     outline: none;
-    border-color: #3498db;
+    border-color: var(--p-primary-color);
     box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.1);
   }
 }

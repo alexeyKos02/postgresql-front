@@ -150,7 +150,7 @@ async function invite() {
   align-items: flex-start;
   gap: 10px;
   background-color: #f1f5f9;
-  border-left: 4px solid #3b82f6;
+  border-left: 4px solid var(--p-primary-color); // ← динамический цвет
   padding: 12px 16px;
   border-radius: 6px;
   margin-top: 16px;
@@ -160,7 +160,7 @@ async function invite() {
 
 .info-icon {
   font-size: 16px;
-  color: #3b82f6;
+  color: var(--p-primary-color); // ← тоже динамический
   margin-top: 2px;
 }
 

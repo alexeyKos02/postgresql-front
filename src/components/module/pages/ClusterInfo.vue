@@ -2,45 +2,45 @@
   <div class="cluster-details">
     <!-- 📌 Плавающая кнопка открытия мониторинга -->
     <div
-  class="floating-button"
-  v-if="!showResourcePanel && store.isFull"
-  @click="showResourcePanel = true"
-  v-tooltip="'Мониторинг ресурсов'"
->
-  <FontAwesomeIcon icon="fa-solid fa-microchip" />
-</div>
-
-<!-- 📊 Плавающая панель мониторинга ресурсов -->
-<transition name="slide-right">
-  <div v-if="showResourcePanel" class="resource-floating-panel">
-    <div class="resource-panel-header">
-      <span>Мониторинг ресурсов</span>
-      <button class="close-panel-btn" @click="showResourcePanel = false">
-        <FontAwesomeIcon icon="fa-solid fa-circle-xmark" />
-      </button>
+      class="floating-button"
+      v-if="!showResourcePanel && store.isFull"
+      @click="showResourcePanel = true"
+      v-tooltip="'Мониторинг ресурсов'"
+    >
+      <FontAwesomeIcon icon="fa-solid fa-microchip" />
     </div>
-    <div v-if="loadingResources" class="loading-text">Загрузка...</div>
-    <div v-else class="resources-grid">
-      <div v-for="(resource, index) in monitoringResources" :key="index" class="resource-card">
-        <div class="resource-title">{{ resource.pod }}</div>
-        <div class="resource-knobs">
-          <div class="knob-wrapper">
-            <AnimatedKnob :targetValue="resource.cpuUsage * 100" :size="100" />
-            <div class="knob-label">CPU</div>
-          </div>
-          <div class="knob-wrapper">
-            <AnimatedKnob :targetValue="resource.memoryUsage * 100" :size="100" />
-            <div class="knob-label">Memory</div>
-          </div>
-          <div class="knob-wrapper">
-            <AnimatedKnob :targetValue="resource.storageUsage * 100" :size="100" />
-            <div class="knob-label">Storage</div>
+
+    <!-- 📊 Плавающая панель мониторинга ресурсов -->
+    <transition name="slide-right">
+      <div v-if="showResourcePanel" class="resource-floating-panel">
+        <div class="resource-panel-header">
+          <span>Мониторинг ресурсов</span>
+          <button class="close-panel-btn" @click="showResourcePanel = false">
+            <FontAwesomeIcon icon="fa-solid fa-circle-xmark" />
+          </button>
+        </div>
+        <div v-if="loadingResources" class="loading-text">Загрузка...</div>
+        <div v-else class="resources-grid">
+          <div v-for="(resource, index) in monitoringResources" :key="index" class="resource-card">
+            <div class="resource-title">{{ resource.pod }}</div>
+            <div class="resource-knobs">
+              <div class="knob-wrapper">
+                <AnimatedKnob :targetValue="resource.cpuUsage * 100" :size="100" />
+                <div class="knob-label">CPU</div>
+              </div>
+              <div class="knob-wrapper">
+                <AnimatedKnob :targetValue="resource.memoryUsage * 100" :size="100" />
+                <div class="knob-label">Memory</div>
+              </div>
+              <div class="knob-wrapper">
+                <AnimatedKnob :targetValue="resource.storageUsage * 100" :size="100" />
+                <div class="knob-label">Storage</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </div>
-</transition>
+    </transition>
 
     <!-- Информация о кластере -->
     <div class="header-toggle">
@@ -1123,6 +1123,16 @@ async function submitRecovery() {
 </script>
 
 <style scoped lang="scss">
+:root {
+  --p-primary-color: #1f6feb;
+  --p-primary-hover: color-mix(in srgb, var(--p-primary-color), black 10%);
+  --p-secondary-text: #6b7280;
+  --p-border: #e5e7eb;
+  --p-bg-card: #ffffff;
+  --p-text-main: #111827;
+  --p-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
 .cluster-details {
   padding-bottom: 40px;
 }
@@ -1144,42 +1154,42 @@ async function submitRecovery() {
 .page-title {
   font-size: 24px;
   font-weight: bold;
-  color: #1f2937;
+  color: var(--p-text-main);
 }
 
 .toggle-btn {
   background: none;
   border: none;
   font-size: 14px;
-  color: #3498db;
+  color: var(--p-primary-color);
   font-weight: 500;
   cursor: pointer;
   transition: color 0.3s ease;
 
   &:hover {
-    color: #1e87d8;
+    color: var(--p-primary-hover);
   }
 }
 
 .icon {
   font-size: 18px;
   cursor: pointer;
-  color: #3498db;
+  color: var(--p-primary-color);
   transition: color 0.3s ease;
   &:hover {
-    color: #1e87d8;
+    color: var(--p-primary-hover);
   }
 }
 
 .details-card {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--p-bg-card);
+  border: 1px solid var(--p-border);
   border-radius: 8px;
   padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--p-shadow);
 }
 
 .detail-row {
@@ -1191,12 +1201,12 @@ async function submitRecovery() {
   margin-bottom: 6px;
 
   .label {
-    color: #6b7280;
+    color: var(--p-secondary-text);
     font-weight: 500;
   }
 
   .value {
-    color: #111827;
+    color: var(--p-text-main);
     font-weight: 600;
   }
 }
@@ -1216,7 +1226,7 @@ async function submitRecovery() {
 }
 
 .status-blue {
-  background-color: #3498db;
+  background-color: var(--p-primary-color);
   color: white;
   padding: 2px 8px;
   border-radius: 6px;
@@ -1267,12 +1277,12 @@ async function submitRecovery() {
 }
 
 .db-card-form {
-  background: #ffffff;
+  background: var(--p-bg-card);
   margin: 24px 0;
   padding: 20px;
-  border: 1px solid #dcdfe3;
+  border: 1px solid var(--p-border);
   border-radius: 10px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--p-shadow);
   animation: fadeInUp 0.3s ease;
 }
 
@@ -1347,7 +1357,7 @@ async function submitRecovery() {
 }
 
 .submit-db-btn {
-  background-color: #3498db;
+  background-color: var(--p-primary-color);
   color: white;
 }
 
@@ -1393,7 +1403,7 @@ async function submitRecovery() {
 
   .password-icon {
     font-size: 1.2rem;
-    color: #3498db;
+    color: var(--p-primary-color);
     cursor: pointer;
     transition: color 0.2s ease;
 
@@ -1490,7 +1500,7 @@ async function submitRecovery() {
       padding: 4px;
       cursor: pointer;
       font-size: 12px;
-      color: #3498db;
+      color: var(--p-primary-color);
       transition: transform 0.3s ease;
 
       &:hover {
@@ -1612,7 +1622,7 @@ async function submitRecovery() {
   left: 10px;
   width: 48px;
   height: 48px;
-  background-color: #3498db;
+  background-color: var(--p-primary-color);
   color: white;
   border-radius: 50%;
   display: flex;
@@ -1623,9 +1633,10 @@ async function submitRecovery() {
   transition: background-color 0.3s;
 
   &:hover {
-    background-color: #2980b9;
+    background-color: color-mix(in srgb, var(--p-primary-color), black 10%);
   }
 }
+
 
 /* 📊 Плавающая панель мониторинга */
 .resource-floating-panel {
@@ -1673,7 +1684,7 @@ async function submitRecovery() {
   background: none;
   border: none;
   font-size: 24px;
-  color: #3498db; /* синий цвет системы */
+  color: var(--p-primary-color); /* синий цвет системы */
   cursor: pointer;
   transition: color 0.3s ease;
 
