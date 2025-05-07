@@ -145,31 +145,34 @@
             </div>
 
             <div class="accordion" @click="showColorSettings = !showColorSettings">
-      <div class="accordion-header">
-        <i class="pi pi-palette"></i>
-        <span>Настройка цвета интерфейса</span>
-        <i :class="['pi', showColorSettings ? 'pi-chevron-up' : 'pi-chevron-down']" class="chevron"></i>
-      </div>
-    </div>
+              <div class="accordion-header">
+                <i class="pi pi-palette"></i>
+                <span>Настройка цвета интерфейса</span>
+                <i
+                  :class="['pi', showColorSettings ? 'pi-chevron-up' : 'pi-chevron-down']"
+                  class="chevron"
+                ></i>
+              </div>
+            </div>
 
-    <transition name="fade">
-      <div v-if="showColorSettings" class="theme-section">
-        <span class="section-label">Основной цвет</span>
-        <div class="theme-colors limited-width">
-          <button
-            v-for="color in primaryColors"
-            :key="color.name"
-            class="theme-color"
-            :title="color.name"
-            @click="updateColors('primary', color)"
-            :style="{
-              backgroundColor: `${color.name === 'noir' ? 'var(--text-color)' : color.palette['500']}`,
-              outlineColor: `${selectedPrimaryColor === color.name ? 'var(--p-primary-color)' : 'transparent'}`
-            }"
-          ></button>
-        </div>
-      </div>
-    </transition>
+            <transition name="fade">
+              <div v-if="showColorSettings" class="theme-section">
+                <span class="section-label">Основной цвет</span>
+                <div class="theme-colors limited-width">
+                  <button
+                    v-for="color in primaryColors"
+                    :key="color.name"
+                    class="theme-color"
+                    :title="color.name"
+                    @click="updateColors('primary', color)"
+                    :style="{
+                      backgroundColor: `${color.name === 'noir' ? 'var(--text-color)' : color.palette['500']}`,
+                      outlineColor: `${selectedPrimaryColor === color.name ? 'var(--p-primary-color)' : 'transparent'}`,
+                    }"
+                  ></button>
+                </div>
+              </div>
+            </transition>
             <div class="settings-item logout-item" @click="logout">
               <span>Выйти из аккаунта</span>
               <i class="pi pi-sign-out" />

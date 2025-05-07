@@ -140,8 +140,8 @@ const closeModal = () => {
     transform 0.3s ease;
   &:hover {
     opacity: 1;
-  background-color: color-mix(in srgb, var(--p-primary-color), white 10%);
-  transform: scale(1.05);
+    background-color: color-mix(in srgb, var(--p-primary-color), white 10%);
+    transform: scale(1.05);
   }
   /* Когда открыта панель — всегда видна */
   .module.panel-open & {
