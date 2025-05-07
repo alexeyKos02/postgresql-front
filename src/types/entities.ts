@@ -7,6 +7,7 @@ export interface ClusterUser {
   username: string;
   roles: string[];
   expiryDate: string | null;
+  canBeEdited: boolean;
 }
 
 export interface CreateDatabaseUser {

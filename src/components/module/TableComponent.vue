@@ -1,11 +1,15 @@
 <script setup lang="ts">
-import { defineProps, computed } from 'vue';
+import { ref, computed } from 'vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import Tag from 'primevue/tag';
+import Password from 'primevue/password';
+import Calendar from 'primevue/calendar';
+import MultiSelect from 'primevue/multiselect';
+import Button from 'primevue/button';
 import { useRenderStore } from '@/stores';
-import { TypeModule } from '@/types/components';
 import type { User, SecurityGroup } from '@/types/entities';
 import type { DeadlockStat, ResponseClusterUser, BackupData } from '@/types/api';
+import { TypeModule } from '@/types/components';
 
 const props = defineProps<{
   users?: User[];
@@ -16,16 +20,47 @@ const props = defineProps<{
   deadlocks?: DeadlockStat[];
   replicationHosts?: string[];
   backups?: BackupData[];
+  availableRoles?: string[];
+  workspaceId?: number;
+  clusterId?: number;
 }>();
 
-const store = useRenderStore();
+const emit = defineEmits<{
+  (e: 'save', user: ResponseClusterUser, changes: typeof editFields.value): void;
+}>();
 
+function emitSave(user: ResponseClusterUser) {
+  emit('save', user, { ...editFields.value });
+  editingUser.value = null;
+}
+
+const store = useRenderStore();
 const currentUser = computed(() => store.currentUserInfo[store.currentUserInfoId]);
 const isAdmin = computed(() => currentUser.value?.role === 'Admin');
 
 function openInfo() {
   if (store.modules[0]) {
     store.modules[0].type = TypeModule.ClusterInfo;
+  }
+}
+
+const editingUser = ref<string | null>(null);
+const editFields = ref({
+  password: '',
+  expiryDate: null as Date | null,
+  roles: [] as string[],
+});
+
+function toggleEdit(username: string) {
+  if (editingUser.value === username) {
+    editingUser.value = null;
+  } else {
+    editingUser.value = username;
+    editFields.value = {
+      password: '',
+      expiryDate: null,
+      roles: [],
+    };
   }
 }
 </script>
@@ -70,12 +105,20 @@ function openInfo() {
       </button>
     </div>
 
-    <!-- Cluster Users -->
     <div v-for="(user, index) in props.clusterUsers" :key="index" class="item">
-      <div class="info">
+      <!-- Отображение ИМЕНИ и ИКОНКИ удаления только если НЕ редактируется -->
+      <div
+        v-if="editingUser !== user.username"
+        class="info"
+        :class="{ 'non-editable': !user.canBeEdited }"
+        @click="
+          () => {
+            if (user.canBeEdited) toggleEdit(user.username);
+          }
+        "
+      >
         <FontAwesomeIcon icon="fa-solid fa-user" />
         <span>{{ user.username }}</span>
-
         <Tag
           v-if="user.expiryDate"
           severity="warning"
@@ -91,9 +134,50 @@ function openInfo() {
           class="tag"
         />
       </div>
-      <button v-if="isAdmin" class="btn-icon" @click.stop="props.functions?.[0]?.(user.username)">
+
+      <button
+        v-if="isAdmin && editingUser !== user.username"
+        class="btn-icon"
+        @click.stop="props.functions?.[0]?.(user.username)"
+      >
         <FontAwesomeIcon icon="fa-solid fa-trash" />
       </button>
+
+      <!-- Редактируемая форма -->
+      <div v-if="editingUser === user.username" class="edit-form">
+        <!-- Вместо отдельного блока .form-footer -->
+        <div class="db-form-grid with-button">
+          <div class="db-field">
+            <label>Пароль</label>
+            <Password v-model="editFields.password" toggleMask />
+          </div>
+          <div class="db-field">
+            <label>Дата истечения</label>
+            <Calendar v-model="editFields.expiryDate" showIcon showTime hourFormat="24" />
+          </div>
+          <div class="db-field">
+            <label>Роли</label>
+            <MultiSelect
+              v-model="editFields.roles"
+              :options="props.availableRoles || []"
+              placeholder="Выберите роли"
+              display="chip"
+            />
+          </div>
+          <!-- Добавленная кнопка прямо в сетку -->
+          <div class="db-field btn-field">
+            <div class="buttons-inline">
+              <Button label="Сохранить" icon="pi pi-check" @click="emitSave(user)" />
+              <Button
+                label="Отмена"
+                icon="pi pi-times"
+                class="p-button-secondary"
+                @click="editingUser = null"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Deadlocks -->
@@ -227,4 +311,93 @@ function openInfo() {
     background-color: transparent;
   }
 }
+
+.db-form-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+  align-items: end;
+}
+
+.db-field {
+  flex: 1 1 220px;
+  min-width: 220px;
+  max-width: 220px;
+  label {
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 4px;
+    display: block;
+  }
+
+  // Все вложенные поля должны растягиваться на всю ширину
+  :deep(.p-inputtext),
+  :deep(.p-password),
+  :deep(.p-calendar),
+  :deep(.p-multiselect),
+  :deep(.p-dropdown),
+  :deep(.p-button),
+  input,
+  span,
+  select {
+    width: 100% !important;
+  }
+
+  // У MultiSelect контейнер с чипами тоже должен быть ограничен
+  :deep(.p-multiselect-label-container) {
+    max-width: 100%;
+    flex-wrap: wrap;
+  }
+}
+
+.btn-field {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  padding-top: 20px;
+  width: 100%;
+
+  // убираем обёртку с переносом строк
+  .buttons-inline {
+    display: flex;
+    gap: 8px;
+    flex-wrap: nowrap;
+    width: 100%;
+
+    // заставим кнопки ужиматься
+    .p-button {
+      flex: 1 1 auto;
+      max-width: 150px;
+    }
+  }
+}
+
+.buttons-inline {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.non-editable {
+  cursor: not-allowed;
+  opacity: 0.6;
+  pointer-events: auto;
+
+  &:hover {
+    background-color: inherit; // убираем hover эффект
+  }
+}
+
+// .db-form-grid {
+//   display: flex;
+//   flex-wrap: wrap;
+//   gap: 12px;
+//   margin-top: 16px;
+//   align-items: end;
+
+//   // ✅ Ограничение максимальной ширины
+//   max-width: 100%;
+//   box-sizing: border-box;
+//   overflow-x: hidden;
+// }
 </style>

@@ -44,8 +44,8 @@ export interface CreateClusterConfigurationRequest {
 
 export interface CreateDatabaseUserRequest {
   username: string;
-  password: string;
-  database: string;
+  password?: string;
+  database?: string;
   roles: string[];
   expiryDate: string | null;
 }
@@ -107,6 +107,7 @@ export interface ResponseClusterUser {
   username: string;
   roles: string[]; // массив строк, предполагается что роли — это строки
   expiryDate: string | null; // может быть null или строкой (например, ISO-дата)
+  canBeEdited: boolean;
 }
 
 export type ResponseClusterUsers = ResponseClusterUser[];

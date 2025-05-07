@@ -50,7 +50,7 @@
       </button>
     </div>
 
-    <div v-if="loading" class="loading-text">Загрузка данных...</div>
+    <div v-if="loading || !cluster" class="loading-text">Загрузка данных...</div>
 
     <transition name="fade">
       <div v-if="expandedInfo && cluster" class="details-card">
@@ -182,7 +182,12 @@
           </div>
         </transition>
 
-        <TableComponent :clusterUsers="users" :functions="[deleteUser]" />
+        <TableComponent
+          :clusterUsers="users"
+          :functions="[deleteUser]"
+          :available-roles="availableRoles"
+          @save="handleUserSave"
+        />
       </div>
     </transition>
 
@@ -741,24 +746,37 @@ const newDbLabels: Record<keyof CreateDatabaseRequest, string> = {
 
 watch(
   () => singleClusters.value[props.moduleId],
-  async (newClusterId) => {
-    if (!newClusterId) return;
+  async (clusterId) => {
+    if (!clusterId) return;
+
     loading.value = true;
+
     try {
-      cluster.value = await getCluster(props.workspaceId, newClusterId);
-      databases.value = await getDatabases(props.workspaceId, newClusterId);
-      users.value = await getDatabasesUsers(props.workspaceId, newClusterId);
-      store.currentUserInfo[store.currentUserInfoId].cluster = cluster.value.systemName;
-      topQueries.value = [];
+      const [fetchedCluster, dbs, dbUsers, rolesResponse] = await Promise.all([
+        getCluster(props.workspaceId, clusterId),
+        getDatabases(props.workspaceId, clusterId),
+        getDatabasesUsers(props.workspaceId, clusterId),
+        getDatabasesRoles(props.workspaceId, clusterId), // 👈 добавили сюда
+      ]);
+
+      cluster.value = fetchedCluster;
+      databases.value = dbs;
+      users.value = dbUsers;
+      availableRoles.value = rolesResponse || [];
+
+      store.currentUserInfo[store.currentUserInfoId].cluster = fetchedCluster.systemName;
+
       loadingQueries.value = true;
       try {
-        topQueries.value = await getMonitoringTopQueries(props.workspaceId, newClusterId);
+        topQueries.value = await getMonitoringTopQueries(props.workspaceId, clusterId);
       } catch (e) {
         console.error('Ошибка загрузки top queries:', e);
+        topQueries.value = [];
+      } finally {
+        loadingQueries.value = false;
       }
-      loadingQueries.value = false;
     } catch (err) {
-      console.error('Ошибка загрузки данных:', err);
+      console.error('Ошибка загрузки данных кластера:', err);
     } finally {
       loading.value = false;
     }
@@ -924,6 +942,7 @@ const handleAddReplicationHost = async () => {
     });
   }
 };
+
 function toggleQuery(index: number) {
   const i = expandedQueriesIndex.value.indexOf(index);
   if (i !== -1) {
@@ -1120,6 +1139,34 @@ async function submitRecovery() {
     toast.add({ severity: 'error', summary: 'Ошибка восстановления', life: 3000 });
   }
 }
+
+async function handleUserSave(
+  user: ClusterUser,
+  changes: { password: string; expiryDate: Date | null; roles: string[] },
+) {
+  if (!cluster.value) return;
+  const pastUser = users.value.find((u) => u.username === user.username);
+  if (!pastUser) return; // safety check
+
+  const dto = {
+    username: user.username,
+    ...(changes.password ? { password: changes.password } : {}),
+    expiryDate: changes.expiryDate ? changes.expiryDate.toISOString() : pastUser.expiryDate,
+    roles: changes.roles.length ? changes.roles : pastUser.roles,
+  };
+  try {
+    await createDatabaseUser(props.workspaceId, cluster.value.id, dto);
+    users.value = await getDatabasesUsers(props.workspaceId, cluster.value.id);
+  } catch (err) {
+    console.error('Ошибка при сохранении изменений пользователя:', err);
+    toast.add({
+      severity: 'error',
+      summary: 'Ошибка',
+      detail: 'Не удалось сохранить пользователя',
+      life: 3000,
+    });
+  }
+}
 </script>
 
 <style scoped lang="scss">
@@ -1182,8 +1229,8 @@ async function submitRecovery() {
 }
 
 .details-card {
-  background: var(--p-bg-card);
-  border: 1px solid var(--p-border);
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
   padding: 20px;
   display: flex;
@@ -1277,12 +1324,12 @@ async function submitRecovery() {
 }
 
 .db-card-form {
-  background: var(--p-bg-card);
+  background: #ffffff;
   margin: 24px 0;
   padding: 20px;
-  border: 1px solid var(--p-border);
+  border: 1px solid #dcdfe3;
   border-radius: 10px;
-  box-shadow: var(--p-shadow);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   animation: fadeInUp 0.3s ease;
 }
 
@@ -1636,7 +1683,6 @@ async function submitRecovery() {
     background-color: color-mix(in srgb, var(--p-primary-color), black 10%);
   }
 }
-
 
 /* 📊 Плавающая панель мониторинга */
 .resource-floating-panel {
