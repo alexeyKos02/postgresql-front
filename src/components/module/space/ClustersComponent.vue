@@ -57,7 +57,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, computed, watch, ref } from 'vue';
+import { onMounted, onUnmounted, computed, watch, ref, nextTick } from 'vue';
 import { TypeModule } from '@/types/components';
 import { useRenderStore } from '@/stores';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
@@ -65,7 +65,7 @@ import { useToast } from 'primevue/usetoast';
 import { storeToRefs } from 'pinia';
 import ScrollPanel from 'primevue/scrollpanel';
 import { restartCluster, deleteCluster } from '@/utils/api';
-import { roleMap, roles } from '@/types/entities';
+// import { roleMap, roles } from '@/types/entities';
 
 const props = defineProps<{
   workspaceId: number;
@@ -163,7 +163,10 @@ function showClusterInfo(clusterId: number) {
 
 function action() {
   if (store.modules[0]) {
-    store.modules[0].type = TypeModule.CreateCluster;
+    nextTick(() => {
+      store.modules[0].type = TypeModule.CreateCluster;
+    });
+    // store.modules[0].type = TypeModule.CreateCluster;
   }
 }
 

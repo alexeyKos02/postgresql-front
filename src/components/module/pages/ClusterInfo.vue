@@ -56,8 +56,128 @@
       <div v-if="expandedInfo && cluster" class="details-card">
         <div class="detail-row" v-for="(value, key) in displayData" :key="key">
           <span class="label">{{ key }}:</span>
-          <span class="value">{{ value }}</span>
+          <span
+            class="value"
+            :class="
+              key === 'Cron расписание бэкапа' && isEditingClusterInfo && editableCluster
+                ? 'cron-inline'
+                : ''
+            "
+          >
+            <template
+              v-if="
+                isEditingClusterInfo &&
+                editableCluster &&
+                editableFields.some((f) => f.label === key)
+              "
+            >
+              <template v-if="key === 'Размер хранилища'">
+                <div class="slider-wrapper">
+                  <InputText
+                    :modelValue="editableCluster.storageSize?.toString() ?? ''"
+                    @update:modelValue="(val) => (editableCluster.storageSize = Number(val))"
+                    placeholder="Введите размер хранилища"
+                    class="slider-input"
+                  />
+                  <Slider
+                    v-model="editableCluster.storageSize"
+                    :min="1"
+                    :max="5"
+                    class="slider-bar"
+                  />
+                </div>
+              </template>
+              <template v-else-if="key === 'CPU'">
+                <div class="slider-wrapper">
+                  <InputText
+                    :modelValue="editableCluster.cpu?.toString() ?? ''"
+                    @update:modelValue="(val) => (editableCluster.cpu = Number(val))"
+                    placeholder="Введите количество CPU"
+                    class="slider-input"
+                  />
+                  <Slider v-model="editableCluster.cpu" :min="100" :max="800" class="slider-bar" />
+                </div>
+              </template>
+              <template v-else-if="key === 'Память'">
+                <div class="slider-wrapper">
+                  <InputText
+                    :modelValue="editableCluster.memory?.toString() ?? ''"
+                    @update:modelValue="(val) => (editableCluster.memory = Number(val))"
+                    placeholder="Введите объём памяти"
+                    class="slider-input"
+                  />
+                  <Slider
+                    v-model="editableCluster.memory"
+                    :min="300"
+                    :max="1500"
+                    class="slider-bar"
+                  />
+                </div>
+              </template>
+              <template v-else-if="key === 'Инстансы'">
+                <div class="slider-wrapper">
+                  <InputText
+                    :modelValue="editableCluster.instances?.toString() ?? ''"
+                    @update:modelValue="(val) => (editableCluster.instances = Number(val))"
+                    placeholder="Введите количество инстансов"
+                    class="slider-input"
+                  />
+                  <Slider
+                    v-model="editableCluster.instances"
+                    :min="1"
+                    :max="3"
+                    class="slider-bar"
+                  />
+                </div>
+              </template>
+              <template v-else-if="key === 'Метод бэкапа'">
+                <Dropdown
+                  v-model="editableCluster.backupMethod"
+                  :options="['volumeSnapshot', 'barmanObjectStore']"
+                  placeholder="Выберите метод"
+                />
+              </template>
+              <template v-else-if="key === 'Cron расписание бэкапа'">
+                <div>
+                  <CronPresetSelector
+                    :modelValue="editableCluster.backupScheduleCronExpression || ''"
+                    @update:modelValue="
+                      (val) => (editableCluster.backupScheduleCronExpression = val)
+                    "
+                  />
+                </div>
+              </template>
+              <template v-else-if="key === 'Pooler Mode'">
+                <Dropdown
+                  v-model="editableCluster.poolerMode"
+                  :options="['session', 'transaction', 'statement']"
+                  placeholder="Выберите режим"
+                />
+              </template>
+              <template v-else-if="key === 'Max Connections'">
+                <InputText
+                  :modelValue="editableCluster.poolerMaxConnections?.toString() ?? ''"
+                  @update:modelValue="(val) => (editableCluster.poolerMaxConnections = Number(val))"
+                  placeholder="Максимум подключений"
+                />
+              </template>
+              <template v-else-if="key === 'Default Pool Size'">
+                <InputText
+                  :modelValue="editableCluster.poolerDefaultPoolSize?.toString() ?? ''"
+                  @update:modelValue="
+                    (val) => (editableCluster.poolerDefaultPoolSize = Number(val))
+                  "
+                  placeholder="Размер пула по умолчанию"
+                />
+              </template>
+            </template>
+
+            <template v-else>
+              {{ value }}
+            </template>
+          </span>
         </div>
+
         <div class="detail-row">
           <span class="label">Статус:</span>
           <span class="value">
@@ -65,6 +185,27 @@
               {{ getStatusInfo(cluster.status).label }}
             </span>
           </span>
+        </div>
+
+        <div class="form-footer">
+          <div style="display: flex; align-items: center; gap: 12px">
+            <span style="font-weight: 500">Режим редактирования</span>
+            <InputSwitch v-model="isEditingClusterInfo" @change="onEditToggle" />
+          </div>
+
+          <Button
+            label="Сохранить"
+            icon="pi pi-check"
+            @click="submitClusterChanges"
+            v-if="isEditingClusterInfo"
+          />
+          <Button
+            label="Отмена"
+            icon="pi pi-times"
+            class="p-button-secondary"
+            @click="cancelClusterEdit"
+            v-if="isEditingClusterInfo"
+          />
         </div>
       </div>
     </transition>
@@ -547,7 +688,9 @@ import {
   getBackup,
   deleteDatabaseUser,
   getClusterResourceUsage,
+  createCluster,
 } from '@/utils/api';
+import InputSwitch from 'primevue/inputswitch';
 import { useRenderStore } from '@/stores';
 import { storeToRefs } from 'pinia';
 import TableComponent from '../TableComponent.vue';
@@ -574,6 +717,7 @@ import Calendar from 'primevue/calendar';
 import { useToast } from 'primevue';
 import CronPresetSelector from '@/components/CronPresetSelector.vue';
 import AnimatedKnob from '@/components/AnimatedKnob.vue';
+import Slider from 'primevue/slider';
 
 const props = defineProps<{
   workspaceId: number;
@@ -637,6 +781,22 @@ const expandedResources = ref(false);
 const user = computed(() => store.currentUserInfo[store.currentUserInfoId]);
 
 const showResourcePanel = ref(false);
+
+const isEditingClusterInfo = ref(false);
+const editableCluster = ref({ ...cluster.value }); // копия кластера для редактирования
+
+const editableFields = [
+  { label: 'Секьюрити-группа', value: 'securityGroupId' },
+  { label: 'Размер хранилища', value: 'storageSize' },
+  { label: 'CPU', value: 'cpu' },
+  { label: 'Память', value: 'memory' },
+  { label: 'Инстансы', value: 'instances' },
+  { label: 'Метод бэкапа', value: 'backupMethod' },
+  { label: 'Cron расписание бэкапа', value: 'backupScheduleCronExpression' },
+  { label: 'Pooler Mode', value: 'poolerMode' },
+  { label: 'Max Connections', value: 'poolerMaxConnections' },
+  { label: 'Default Pool Size', value: 'poolerDefaultPoolSize' },
+];
 
 watch(showResourcePanel, async (opened) => {
   if (opened && cluster.value) {
@@ -905,6 +1065,7 @@ const displayData = computed(() => {
     'Имя базы данных': cluster.value.databaseName,
     Владелец: cluster.value.ownerName,
     'Версия PostgreSQL': 'v' + cluster.value.majorVersion,
+    'Security Group ID': cluster.value.securityGroupId,
     'Размер хранилища': `${cluster.value.storageSize} GB`,
     CPU: cluster.value.cpu,
     Память: `${cluster.value.memory} MB`,
@@ -916,6 +1077,8 @@ const displayData = computed(() => {
     'Default Pool Size': cluster.value.poolerDefaultPoolSize,
     'Метод бэкапа': cluster.value.backupMethod,
     'Cron расписание бэкапа': cluster.value.backupScheduleCronExpression,
+    'Data Durability': cluster.value.dataDurability || '—',
+    'Sync Replicas': cluster.value.syncReplicas ?? '—',
   };
 });
 const filteredQueries = computed(() =>
@@ -942,6 +1105,32 @@ const handleAddReplicationHost = async () => {
     });
   }
 };
+
+async function submitClusterChanges() {
+  if (!cluster.value || !cluster.value.systemName) {
+    toast.add({ severity: 'error', summary: 'Системное имя не задано', life: 3000 });
+    return;
+  }
+  try {
+    const updatedFields = Object.fromEntries(
+      editableFields.map(({ value }) => {
+        let fieldValue = editableCluster.value[value as keyof typeof editableCluster.value];
+        if (value === 'backupScheduleCronExpression' && typeof fieldValue === 'string') {
+          const parts = fieldValue.trim().split(' ');
+          if (parts.length === 5) {
+            fieldValue = `0 ${fieldValue}`;
+          }
+        }
+        return [value, fieldValue];
+      }),
+    );
+    await createCluster(props.workspaceId, { ...cluster.value, ...updatedFields });
+    toast.add({ severity: 'success', summary: 'Изменения сохранены', life: 3000 });
+    isEditingClusterInfo.value = false;
+  } catch (err) {
+    toast.add({ severity: 'error', summary: 'Ошибка сохранения', life: 3000 });
+  }
+}
 
 function toggleQuery(index: number) {
   const i = expandedQueriesIndex.value.indexOf(index);
@@ -1166,6 +1355,18 @@ async function handleUserSave(
       life: 3000,
     });
   }
+}
+function onEditToggle(value: boolean) {
+  if (value && cluster.value) {
+    editableCluster.value = { ...cluster.value };
+  } else {
+    cancelClusterEdit();
+  }
+}
+
+function cancelClusterEdit() {
+  isEditingClusterInfo.value = false;
+  editableCluster.value = { ...cluster.value };
 }
 </script>
 
@@ -1737,6 +1938,22 @@ async function handleUserSave(
   &:hover {
     color: #267ac8; /* чуть темнее при наведении */
   }
+}
+.slider-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .slider-input {
+    width: 100%;
+  }
+
+  .slider-bar {
+    width: 100%;
+  }
+}
+.cron-inline {
+  width: 90%;
 }
 </style>
 

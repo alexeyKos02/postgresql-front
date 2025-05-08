@@ -22,7 +22,7 @@ export interface CreateClusterDto {
   lcCtype: string;
   instances: number;
   ownerName: string;
-  ownerPassword: string;
+  ownerPassword?: string;
   poolerMode: string;
   poolerMaxConnections: number;
   poolerDefaultPoolSize: number;
