@@ -81,7 +81,7 @@ function toggleEdit(username: string) {
     </div>
 
     <!-- Security Groups -->
-    <div v-for="group in props.securityGoups" :key="group.id" class="item" @click="openInfo">
+    <div v-for="group in props.securityGoups" :key="group.id" class="item">
       <div class="info">
         <span>{{ group.name }}</span>
       </div>

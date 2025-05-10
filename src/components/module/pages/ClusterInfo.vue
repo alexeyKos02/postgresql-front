@@ -493,6 +493,10 @@
         >
           <FontAwesomeIcon icon="fa-solid fa-gear" />
         </div>
+        <div class="icon" @click="handleDeleteAllReplicationHosts" v-if="user.role !== 'Viewer'">
+          <FontAwesomeIcon icon="fa-solid fa-trash" />
+        </div>
+
         <button class="toggle-btn" @click="expandedReplicationHosts = !expandedReplicationHosts">
           {{ expandedReplicationHosts ? 'Скрыть' : 'Показать' }}
         </button>
@@ -1326,6 +1330,32 @@ async function submitRecovery() {
     showRecoveryForm.value = false;
   } catch (err) {
     toast.add({ severity: 'error', summary: 'Ошибка восстановления', life: 3000 });
+  }
+}
+
+import { deleteReplicationHosts } from '@/utils/api'; // добавь, если ещё не импортировал
+
+async function handleDeleteAllReplicationHosts() {
+  if (!cluster.value) return;
+  const confirmed = confirm('Удалить хост?');
+  if (!confirmed) return;
+
+  try {
+    await deleteReplicationHosts(props.workspaceId, cluster.value.id);
+    toast.add({
+      severity: 'success',
+      summary: 'Хосты удалены',
+      detail: 'Все репликационные хосты были удалены',
+      life: 3000,
+    });
+  } catch (err) {
+    console.error('Ошибка при удалении хостов:', err);
+    toast.add({
+      severity: 'error',
+      summary: 'Ошибка',
+      detail: 'Не удалось удалить хосты',
+      life: 3000,
+    });
   }
 }
 
