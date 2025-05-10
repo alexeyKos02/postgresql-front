@@ -6,7 +6,7 @@ import router from './router';
 import '@/assets/styles';
 
 import PrimeVue from 'primevue/config';
-
+import Tooltip from 'primevue/tooltip';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faFile } from '@fortawesome/free-solid-svg-icons';
@@ -83,10 +83,9 @@ app.use(PrimeVue, {
 });
 // Регистрация компонента FontAwesomeIcon
 app.component('font-awesome-icon', FontAwesomeIcon);
-
+app.directive('tooltip', Tooltip);
 app.use(createPinia());
 app.use(router);
-app.use(PrimeVue);
 app.use(ConfirmationService);
 app.use(ToastService);
 app.mount('#app');

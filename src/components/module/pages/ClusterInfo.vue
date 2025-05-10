@@ -190,7 +190,7 @@
         <div class="form-footer">
           <div style="display: flex; align-items: center; gap: 12px">
             <span style="font-weight: 500">Режим редактирования</span>
-            <InputSwitch v-model="isEditingClusterInfo" @change="onEditToggle" />
+            <InputSwitch v-model="isEditingClusterInfo" @update:modelValue="onEditToggle" />
           </div>
 
           <Button

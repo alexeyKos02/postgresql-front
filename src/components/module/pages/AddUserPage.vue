@@ -6,7 +6,6 @@
 
     <!-- Информационная плашка -->
     <div class="info-banner">
-      <FontAwesomeIcon icon="fa-solid fa-circle-info" class="info-icon" />
       <p class="info-text">
         Приглашение можно отправить только пользователю, зарегистрированному в системе.
       </p>
